@@ -340,8 +340,7 @@ void setupWebHandlers() {
   server.begin();
 }
 
-void setup() {
-  Serial.begin(115200); // 시리얼 통신 속도
+void F10_init() {
 
   // 핀 모드 설정
   pinMode(motorEnablePin, OUTPUT);
@@ -369,7 +368,7 @@ void setup() {
   Serial.println("아두이노 자연풍 선풍기 시작 (웹 제어 가능)!");
 }
 
-void loop() {
+void F10_run() {
   unsigned long currentMillis = millis();
 
   // DHT 센서 데이터 읽기 (일정 간격마다)
