@@ -1,3 +1,5 @@
+#pragma once
+
 //ESP_Natural_breeze_Fan_001
 
 // 2025-07-07: 사용자 요구사항 정리
