@@ -34,7 +34,7 @@ const int G_F10_LOOP_DELAY_MS = 10; // 메인 루프 딜레이 (밀리초)
 
 // LittleFS 파일 경로 상수
 const char* G_F10_SETTINGS_FILE_PATH = "/F10_settings_001.json"; // 설정 저장 파일
-const char* G_F10_HTML_FILE_PATH = "/index.html";       // HTML 페이지 파일
+const char* G_F10_HTML_FILE_PATH = "/F10_index_001.html";       // HTML 페이지 파일
 
 // --- 전역 변수 정의 (g_F10_ 접두사) ---
 // 웹 서버 객체
