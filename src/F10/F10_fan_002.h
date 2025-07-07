@@ -78,7 +78,7 @@ unsigned long g_F10_lastDhtReadTime = 0;
 /**
  * @brief 설정값을 LittleFS 파일에 JSON 형식으로 저장합니다.
  */
-void F10_saveSettings() {
+void F10_saveJson_Settings() {
   // 로컬 변수 정의 (v_ 접두사)
   JsonDocument v_doc; // JSON 문서 크기 (필요에 따라 조절)
 
@@ -109,7 +109,7 @@ void F10_saveSettings() {
 /**
  * @brief LittleFS 파일에서 JSON 형식의 설정값을 불러옵니다.
  */
-void F10_loadSettings() {
+void F10_loadJson_Settings() {
   // 로컬 변수 정의 (v_ 접두사)
   File v_settingsFile = LittleFS.open(G_F10_SETTINGS_FILE_PATH, "r");
   if (!v_settingsFile) {
@@ -235,7 +235,7 @@ void F10_setupWebHandlers() {
         Serial.print("Humid Threshold: "); Serial.println(g_F10_dhtHumidThreshold);
         Serial.println("--------------------");
 
-        F10_saveSettings(); // 설정 변경 후 LittleFS에 저장
+        F10_saveJson_Settings(); // 설정 변경 후 LittleFS에 저장
         p_request->send(200, "text/plain", "설정 저장 완료!");
     } else {
         p_request->send(400, "text/plain", "잘못된 요청!");
@@ -381,7 +381,7 @@ void F10_init() {
   }
   Serial.println("LittleFS 마운트 성공.");
 
-  F10_loadSettings(); // LittleFS에서 설정값 불러오기
+  F10_loadJson_Settings(); // LittleFS에서 설정값 불러오기
 
   F10_connectToWiFi(); // WiFi 네트워크 연결
   F10_setupWebHandlers(); // 웹 서버 핸들러 설정 및 시작
