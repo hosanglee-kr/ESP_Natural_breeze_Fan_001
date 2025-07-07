@@ -80,7 +80,7 @@ unsigned long g_F10_lastDhtReadTime = 0;
  */
 void F10_saveSettings() {
   // 로컬 변수 정의 (v_ 접두사)
-  StaticJsonDocument<512> v_doc; // JSON 문서 크기 (필요에 따라 조절)
+  JsonDocument v_doc; // JSON 문서 크기 (필요에 따라 조절)
 
   v_doc["minSpeed"] = g_F10_fanMinSpeed;
   v_doc["maxSpeed"] = g_F10_fanMaxSpeed;
@@ -118,7 +118,7 @@ void F10_loadSettings() {
     return;
   }
 
-  StaticJsonDocument<512> v_doc;
+  JsonDocument v_doc;
   DeserializationError v_error = deserializeJson(v_doc, v_settingsFile);
 
   if (v_error) {
@@ -178,7 +178,7 @@ void F10_setupWebHandlers() {
   // 설정값 가져오기 핸들러
   g_F10_server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *p_request){
     // 로컬 변수 정의 (v_ 접두사)
-    StaticJsonDocument<512> v_doc;
+    JsonDocument v_doc;
     v_doc["minSpeed"] = g_F10_fanMinSpeed;
     v_doc["maxSpeed"] = g_F10_fanMaxSpeed;
     // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 전송
@@ -199,7 +199,7 @@ void F10_setupWebHandlers() {
     // 로컬 변수 정의 (v_ 접두사)
     if (p_request->hasParam("plain", true)) {
         String v_requestBody = p_request->arg("plain");
-        StaticJsonDocument<512> v_doc;
+        JsonDocument v_doc;
         DeserializationError v_error = deserializeJson(v_doc, v_requestBody);
 
         if (v_error) {
@@ -245,7 +245,7 @@ void F10_setupWebHandlers() {
   // 센서 데이터 가져오기 핸들러
   g_F10_server.on("/sensor_data", HTTP_GET, [](AsyncWebServerRequest *p_request){
     // 로컬 변수 정의 (v_ 접두사)
-    StaticJsonDocument<128> v_doc;
+    JsonDocument v_doc;
     v_doc["temperature"] = g_F10_temperature;
     v_doc["humidity"] = g_F10_humidity;
     v_doc["pirDetected"] = (digitalRead(G_F10_PIR_PIN) == HIGH);
