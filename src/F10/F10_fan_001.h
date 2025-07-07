@@ -255,7 +255,7 @@ void connectToWiFi() {
 void setupWebHandlers() {
   // 루트 페이지 핸들러
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", htmlPage);
+    request->send(200, "text/html", htmlPage);
   });
 
   // 설정값 가져오기 핸들러
