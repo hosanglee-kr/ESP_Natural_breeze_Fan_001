@@ -1,156 +1,219 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>자연풍 선풍기 제어</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f0f0; }
-  .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-  h2 { color: #333; }
-  label { display: block; margin-top: 10px; font-weight: bold; }
-  input[type="number"], input[type="range"] { width: calc(100% - 22px); padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; }
-  input[type="checkbox"] { margin-right: 10px; }
-  button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; font-size: 16px; }
-  button:hover { background-color: #45a049; }
-  .status { margin-top: 20px; padding: 10px; background-color: #e7f3e7; border-left: 6px solid #4CAF50; }
-  .sensor-data { margin-top: 15px; padding: 10px; background-color: #e0f7fa; border-left: 6px solid #00bcd4; }
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>자연풍 선풍기 제어</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input[type="number"],
+    input[type="range"] {
+      width: calc(100% - 22px);
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #e7f3e7;
+      border-left: 6px solid #4CAF50;
+    }
+
+    .sensor-data {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #e0f7fa;
+      border-left: 6px solid #00bcd4;
+    }
+  </style>
 </head>
+
 <body>
-<div class="container">
-  <h2>자연풍 선풍기 설정</h2>
+  <div class="container">
+    <h2>자연풍 선풍기 설정</h2>
 
-  <div class="status" id="status">상태: 연결됨</div>
-  <div class="sensor-data">
-    현재 온도: <span id="temp">N/A</span>°C, 습도: <span id="hum">N/A</span>%
-    <br>PIR 감지: <span id="pirStatus">N/A</span>
-  </div>
-
-  <form id="fanSettingsForm">
-    <label for="minSpeed">최소 바람 세기 (0-255):</label>
-    <input type="range" id="minSpeed" name="minSpeed" min="0" max="255" oninput="this.nextElementSibling.value=this.value">
-    <output>80</output><br>
-
-    <label for="maxSpeed">최대 바람 세기 (0-255):</label>
-    <input type="range" id="maxSpeed" name="maxSpeed" min="0" max="255" oninput="this.nextElementSibling.value=this.value">
-    <output>255</output><br>
-
-    <label for="minInterval">사인파 주기 (느림-빠름):</label>
-    <input type="range" id="minInterval" name="minInterval" min="100" max="5000" oninput="this.nextElementSibling.value=this.value">
-    <output>500</output><br>
-
-    <label for="maxInterval">랜덤 변화 주기 (느림-빠름):</label>
-    <input type="range" id="maxInterval" name="maxInterval" min="500" max="10000" oninput="this.nextElementSibling.value=this.value">
-    <output>3000</output><br>
-
-    <label><input type="checkbox" id="pirEnable" name="pirEnable"> PIR 센서 적용</label><br>
-    <label><input type="checkbox" id="dhtEnable" name="dhtEnable"> 온습도 센서 적용</label><br>
-    
-    <div id="dhtConditions" style="display:none;">
-      <label for="tempThreshold">온도 임계값 (°C):</label>
-      <input type="number" id="tempThreshold" name="tempThreshold" step="0.1" value="28.0"><br>
-      <label for="humidThreshold">습도 임계값 (%):</label>
-      <input type="number" id="humidThreshold" name="humidThreshold" step="0.1" value="70.0"><br>
+    <div class="status" id="status">상태: 연결됨</div>
+    <div class="sensor-data">
+      현재 온도: <span id="temp">N/A</span>°C, 습도: <span id="hum">N/A</span>%
+      <br>PIR 감지: <span id="pirStatus">N/A</span>
     </div>
 
-    <button type="submit">설정 적용</button>
-  </form>
+    <form id="fanSettingsForm">
+      <label for="minSpeed">최소 바람 세기 (0-255):</label>
+      <input type="range" id="minSpeed" name="minSpeed" min="0" max="255"
+        oninput="this.nextElementSibling.value=this.value">
+      <output>80</output><br>
 
-</div>
+      <label for="maxSpeed">최대 바람 세기 (0-255):</label>
+      <input type="range" id="maxSpeed" name="maxSpeed" min="0" max="255"
+        oninput="this.nextElementSibling.value=this.value">
+      <output>255</output><br>
 
-<script>
-  const minSpeedInput = document.getElementById('minSpeed');
-  const maxSpeedInput = document.getElementById('maxSpeed');
-  const minIntervalInput = document.getElementById('minInterval'); // 사인파 주기에 사용
-  const maxIntervalInput = document.getElementById('maxInterval'); // 랜덤 주기에 사용
-  const pirEnableInput = document.getElementById('pirEnable');
-  const dhtEnableInput = document.getElementById('dhtEnable');
-  const tempThresholdInput = document.getElementById('tempThreshold');
-  const humidThresholdInput = document.getElementById('humidThreshold');
-  const dhtConditionsDiv = document.getElementById('dhtConditions');
-  const statusDiv = document.getElementById('status');
-  const tempSpan = document.getElementById('temp');
-  const humSpan = document.getElementById('hum');
-  const pirStatusSpan = document.getElementById('pirStatus');
+      <label for="minInterval">사인파 주기 (느림-빠름):</label>
+      <input type="range" id="minInterval" name="minInterval" min="100" max="5000"
+        oninput="this.nextElementSibling.value=this.value">
+      <output>500</output><br>
 
-  // 초기 설정값 로드
-  function loadSettings() {
-    fetch('/settings')
-      .then(response => response.json())
-      .then(data => {
-        minSpeedInput.value = data.minSpeed;
-        minSpeedInput.nextElementSibling.value = data.minSpeed;
-        maxSpeedInput.value = data.maxSpeed;
-        maxSpeedInput.nextElementSibling.value = data.maxSpeed;
-        minIntervalInput.value = data.minInterval;
-        minIntervalInput.nextElementSibling.value = data.minInterval;
-        maxIntervalInput.value = data.maxInterval;
-        maxIntervalInput.nextElementSibling.value = data.maxInterval;
-        pirEnableInput.checked = data.pirEnabled;
-        dhtEnableInput.checked = data.dhtEnabled;
-        tempThresholdInput.value = data.tempThreshold;
-        humidThresholdInput.value = data.humidThreshold;
-        toggleDhtConditions(); // DHT 조건 표시/숨김
-        updateSensorData(); // 초기 센서 데이터 로드
+      <label for="maxInterval">랜덤 변화 주기 (느림-빠름):</label>
+      <input type="range" id="maxInterval" name="maxInterval" min="500" max="10000"
+        oninput="this.nextElementSibling.value=this.value">
+      <output>3000</output><br>
+
+      <label><input type="checkbox" id="pirEnable" name="pirEnable"> PIR 센서 적용</label><br>
+      <label><input type="checkbox" id="dhtEnable" name="dhtEnable"> 온습도 센서 적용</label><br>
+
+      <div id="dhtConditions" style="display:none;">
+        <label for="tempThreshold">온도 임계값 (°C):</label>
+        <input type="number" id="tempThreshold" name="tempThreshold" step="0.1" value="28.0"><br>
+        <label for="humidThreshold">습도 임계값 (%):</label>
+        <input type="number" id="humidThreshold" name="humidThreshold" step="0.1" value="70.0"><br>
+      </div>
+
+      <button type="submit">설정 적용</button>
+    </form>
+
+  </div>
+
+  <script>
+    const minSpeedInput = document.getElementById('minSpeed');
+    const maxSpeedInput = document.getElementById('maxSpeed');
+    const minIntervalInput = document.getElementById('minInterval'); // 사인파 주기에 사용
+    const maxIntervalInput = document.getElementById('maxInterval'); // 랜덤 주기에 사용
+    const pirEnableInput = document.getElementById('pirEnable');
+    const dhtEnableInput = document.getElementById('dhtEnable');
+    const tempThresholdInput = document.getElementById('tempThreshold');
+    const humidThresholdInput = document.getElementById('humidThreshold');
+    const dhtConditionsDiv = document.getElementById('dhtConditions');
+    const statusDiv = document.getElementById('status');
+    const tempSpan = document.getElementById('temp');
+    const humSpan = document.getElementById('hum');
+    const pirStatusSpan = document.getElementById('pirStatus');
+
+    // 초기 설정값 로드
+    function loadSettings() {
+      fetch('/settings')
+        .then(response => response.json())
+        .then(data => {
+          minSpeedInput.value = data.minSpeed;
+          minSpeedInput.nextElementSibling.value = data.minSpeed;
+          maxSpeedInput.value = data.maxSpeed;
+          maxSpeedInput.nextElementSibling.value = data.maxSpeed;
+          minIntervalInput.value = data.minInterval;
+          minIntervalInput.nextElementSibling.value = data.minInterval;
+          maxIntervalInput.value = data.maxInterval;
+          maxIntervalInput.nextElementSibling.value = data.maxInterval;
+          pirEnableInput.checked = data.pirEnabled;
+          dhtEnableInput.checked = data.dhtEnabled;
+          tempThresholdInput.value = data.tempThreshold;
+          humidThresholdInput.value = data.humidThreshold;
+          toggleDhtConditions(); // DHT 조건 표시/숨김
+          updateSensorData(); // 초기 센서 데이터 로드
+        })
+        .catch(error => console.error('Error loading settings:', error));
+    }
+
+    // DHT 조건 입력 필드 표시/숨김 토글
+    function toggleDhtConditions() {
+      dhtConditionsDiv.style.display = dhtEnableInput.checked ? 'block' : 'none';
+    }
+    dhtEnableInput.addEventListener('change', toggleDhtConditions);
+
+    // 폼 제출 시 설정 저장
+    document.getElementById('fanSettingsForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const formData = {
+        minSpeed: parseInt(minSpeedInput.value),
+        maxSpeed: parseInt(maxSpeedInput.value),
+        minInterval: parseInt(minIntervalInput.value), // 사인파 주기
+        maxInterval: parseInt(maxIntervalInput.value), // 랜덤 주기
+        pirEnable: pirEnableInput.checked,
+        dhtEnable: dhtEnableInput.checked,
+        tempThreshold: parseFloat(tempThresholdInput.value),
+        humidThreshold: parseFloat(humidThresholdInput.value)
+      };
+
+      fetch('/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
       })
-      .catch(error => console.error('Error loading settings:', error));
-  }
-
-  // DHT 조건 입력 필드 표시/숨김 토글
-  function toggleDhtConditions() {
-    dhtConditionsDiv.style.display = dhtEnableInput.checked ? 'block' : 'none';
-  }
-  dhtEnableInput.addEventListener('change', toggleDhtConditions);
-
-  // 폼 제출 시 설정 저장
-  document.getElementById('fanSettingsForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const formData = {
-      minSpeed: parseInt(minSpeedInput.value),
-      maxSpeed: parseInt(maxSpeedInput.value),
-      minInterval: parseInt(minIntervalInput.value), // 사인파 주기
-      maxInterval: parseInt(maxIntervalInput.value), // 랜덤 주기
-      pirEnable: pirEnableInput.checked,
-      dhtEnable: dhtEnableInput.checked,
-      tempThreshold: parseFloat(tempThresholdInput.value),
-      humidThreshold: parseFloat(humidThresholdInput.value)
-    };
-
-    fetch('/settings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-    .then(response => response.text())
-    .then(data => {
-      statusDiv.textContent = '상태: ' + data;
-      console.log(data);
-    })
-    .catch(error => {
-      statusDiv.textContent = '상태: 설정 저장 실패!';
-      console.error('Error saving settings:', error);
+        .then(response => response.text())
+        .then(data => {
+          statusDiv.textContent = '상태: ' + data;
+          console.log(data);
+        })
+        .catch(error => {
+          statusDiv.textContent = '상태: 설정 저장 실패!';
+          console.error('Error saving settings:', error);
+        });
     });
-  });
 
-  // 센서 데이터 주기적으로 업데이트
-  function updateSensorData() {
-    fetch('/sensor_data')
-      .then(response => response.json())
-      .then(data => {
-        tempSpan.textContent = data.temperature.toFixed(1);
-        humSpan.textContent = data.humidity.toFixed(1);
-        pirStatusSpan.textContent = data.pirDetected ? '감지됨' : '감지 안 됨';
-      })
-      .catch(error => console.error('Error fetching sensor data:', error));
-  }
+    // 센서 데이터 주기적으로 업데이트
+    function updateSensorData() {
+      fetch('/sensor_data')
+        .then(response => response.json())
+        .then(data => {
+          tempSpan.textContent = data.temperature.toFixed(1);
+          humSpan.textContent = data.humidity.toFixed(1);
+          pirStatusSpan.textContent = data.pirDetected ? '감지됨' : '감지 안 됨';
+        })
+        .catch(error => console.error('Error fetching sensor data:', error));
+    }
 
-  // 페이지 로드 시 초기 설정 및 센서 데이터 로드
-  window.onload = function() {
-    loadSettings();
-    setInterval(updateSensorData, 3000); // 3초마다 센서 데이터 업데이트
-  };
-</script>
+    // 페이지 로드 시 초기 설정 및 센서 데이터 로드
+    window.onload = function () {
+      loadSettings();
+      setInterval(updateSensorData, 3000); // 3초마다 센서 데이터 업데이트
+    };
+  </script>
 </body>
+
 </html>
