@@ -1,0 +1,10 @@
+{
+  "minSpeed": 80,
+  "maxSpeed": 255,
+  "minInterval": 500,
+  "maxInterval": 3000,
+  "pirEnabled": false,
+  "dhtEnabled": false,
+  "tempThreshold": 28.0,
+  "humidThreshold": 70.0
+}
