@@ -113,7 +113,7 @@ void F10_loadJson_Settings() {
 	File v_settingsFile = LittleFS.open(G_F10_SETTINGS_FILE_PATH, "r");
 	if (!v_settingsFile) {
 		Serial.println("LittleFS: 설정 파일이 없습니다. 기본값을 사용합니다.");
-		F10_saveSettings();	 // 파일이 없으면 기본값으로 저장
+		F10_saveJson_Settings();	 // 파일이 없으면 기본값으로 저장
 		return;
 	}
 
