@@ -1,3 +1,5 @@
+#pragma once
+
 //ESP_Natural_breeze_Fan_001
 
 // 2025-07-07: 사용자 요구사항 정리
@@ -18,66 +20,79 @@
 //    - 여기에 작은 랜덤 오프셋을 더해 불규칙성 추가
 // 6. 소스코드 출력 시 컴파일 오류 유발하는 유니코드 공백문자, byte order mark 등을 빠짐없이 제거
 // 7. PlatformIO Arduino Core 사용 명시
+// 8. 명명 규칙 적용:
+//    - 함수명: F10_ 접두사
+//    - 전역변수명: g_F10_ 접두사
+//    - 전역상수명: G_F10_ 접두사
+//    - 로컬 변수명: v_ 접두사
+//    - 함수의 파라메터 변수: p_ 접두사
+// 9. 모든 소스 코드를 하나의 헤더 파일(F10_fan_001.h)에 구현
+
 
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h> // 비동기 웹 서버 라이브러리
 #include <DHT.h>               // DHT 센서 라이브러리
 
+// --- 전역 상수 정의 (G_F10_ 접두사) ---
 // WiFi 설정 (본인의 WiFi 정보로 변경하세요)
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
-
-// 웹 서버 객체 생성 (포트 80)
-AsyncWebServer server(80);
+const char* G_F10_WIFI_SSID = "YOUR_WIFI_SSID";
+const char* G_F10_WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
 // 모터 드라이버 핀 정의 (L298N 기준)
-const int motorEnablePin = 25;  // 모터 속도 제어 (PWM 핀)
-const int motorInput1 = 26;     // 모터 방향 제어 핀 1
-const int motorInput2 = 27;     // 모터 방향 제어 핀 2
+const int G_F10_MOTOR_ENABLE_PIN = 25;  // 모터 속도 제어 (PWM 핀)
+const int G_F10_MOTOR_INPUT1_PIN = 26;     // 모터 방향 제어 핀 1
+const int G_F10_MOTOR_INPUT2_PIN = 27;     // 모터 방향 제어 핀 2
 
 // DHT11 센서 설정
-#define DHTPIN 14       // DHT 데이터 핀 (예: GPIO 14)
-#define DHTTYPE DHT11   // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
-DHT dht(DHTPIN, DHTTYPE);
+const int G_F10_DHT_PIN = 14;       // DHT 데이터 핀 (예: GPIO 14)
+#define G_F10_DHT_TYPE DHT11   // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
 
 // PIR 센서 설정
-const int pirPin = 13; // PIR 센서 OUT 핀 (예: GPIO 13)
+const int G_F10_PIR_PIN = 13; // PIR 센서 OUT 핀 (예: GPIO 13)
+
+// 자연풍 로직 내부 상수
+const int G_F10_RANDOM_DEVIATION = 20; // 사인파 기본 속도에 더해질 랜덤 값의 최대 편차 (PWM 값)
+const long G_F10_PIR_INACTIVE_TIMEOUT_MS = 10000; // PIR 감지 후 선풍기 유지 시간 (밀리초)
+const long G_F10_DHT_READ_INTERVAL_MS = 2000; // DHT 센서 읽는 간격 (밀리초)
+const int G_F10_LOOP_DELAY_MS = 10; // 메인 루프 딜레이 (밀리초)
+
+// --- 전역 변수 정의 (g_F10_ 접두사) ---
+// 웹 서버 객체
+AsyncWebServer g_F10_server(80);
+
+// DHT 센서 객체
+DHT g_F10_dht(G_F10_DHT_PIN, G_F10_DHT_TYPE);
 
 // 자연풍 선풍기 설정 변수 (웹에서 제어)
-int fanMinSpeed = 80;   // 최소 바람 세기 (0-255 PWM 값)
-int fanMaxSpeed = 255;  // 최대 바람 세기 (0-255 PWM 값)
+int g_F10_fanMinSpeed = 80;   // 최소 바람 세기 (0-255 PWM 값)
+int g_F10_fanMaxSpeed = 255;  // 최대 바람 세기 (0-255 PWM 값)
 
 // 사인파 및 랜덤 변화 관련 변수 (웹에서 제어)
-float sineFrequency = 0.0005; // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
-long randomInterval = 3000; // 랜덤 값을 얼마나 자주 갱신할지 (ms)
+float g_F10_sineFrequency = 0.0005; // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
+long g_F10_randomInterval = 3000; // 랜덤 값을 얼마나 자주 갱신할지 (ms)
 
-bool pirSensorEnabled = false; // PIR 센서 적용 여부
-bool dhtSensorEnabled = false; // DHT11 센서 적용 여부
-float dhtTempThreshold = 28.0; // DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
-float dhtHumidThreshold = 70.0; // DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
+bool g_F10_pirSensorEnabled = false; // PIR 센서 적용 여부
+bool g_F10_dhtSensorEnabled = false; // DHT11 센서 적용 여부
+float g_F10_dhtTempThreshold = 28.0; // DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
+float g_F10_dhtHumidThreshold = 70.0; // DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
 
 // 자연풍 로직 내부 변수
-float currentMotorSpeed = 0; // 부드러운 변화를 위해 float 사용
-unsigned long previousSineMillis = 0;
-float sineAngle = 0; // 사인파의 현재 각도
-
-const int RANDOM_DEVIATION = 20; // 사인파 기본 속도에 더해질 랜덤 값의 최대 편차 (PWM 값)
-unsigned long previousRandomMillis = 0;
-int randomOffset = 0; // 현재 랜덤 오프셋
+float g_F10_currentMotorSpeed = 0; // 부드러운 변화를 위해 float 사용
+unsigned long g_F10_previousSineMillis = 0;
+float g_F10_sineAngle = 0; // 사인파의 현재 각도
+unsigned long g_F10_previousRandomMillis = 0;
+int g_F10_randomOffset = 0; // 현재 랜덤 오프셋
 
 // 센서 상태 및 제어 로직 변수
-unsigned long lastPirDetectionTime = 0;
-const long PIR_INACTIVE_TIMEOUT = 10000; // PIR 감지 후 선풍기 유지 시간 (밀리초)
+unsigned long g_F10_lastPirDetectionTime = 0;
+float g_F10_temperature = 0.0;
+float g_F10_humidity = 0.0;
+unsigned long g_F10_lastDhtReadTime = 0;
 
-float temperature = 0.0;
-float humidity = 0.0;
-unsigned long lastDhtReadTime = 0;
-const long DHT_READ_INTERVAL = 2000; // DHT 센서 읽는 간격 (밀리초)
 
-// HTML 웹 페이지 내용
-// 웹 페이지는 인라인으로 정의되어 있습니다. 복사하여 웹 브라우저에서 직접 열어볼 수도 있습니다.
-const char* htmlPage PROGMEM = R"rawliteral(
+// HTML 웹 페이지 내용 (PROGMEM에 저장하여 Flash 메모리 사용)
+const char* G_F10_HTML_PAGE PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
 <head>
@@ -236,10 +251,15 @@ const char* htmlPage PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
-// WiFi 연결 함수
-void connectToWiFi() {
+
+// --- 함수 정의 (F10_ 접두사) ---
+
+/**
+ * @brief WiFi 네트워크에 연결합니다.
+ */
+void F10_connectToWiFi() {
   Serial.print("Connecting to WiFi...");
-  WiFi.begin(ssid, password);
+  WiFi.begin(G_F10_WIFI_SSID, G_F10_WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -249,208 +269,233 @@ void connectToWiFi() {
   Serial.println(WiFi.localIP());
 }
 
-// 웹 서버 핸들러 설정
-void setupWebHandlers() {
-  // 루트 페이지 핸들러
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", htmlPage);
+/**
+ * @brief 웹 서버 핸들러를 설정합니다.
+ */
+void F10_setupWebHandlers() {
+  // 루트 페이지 핸들러: 웹 페이지 제공
+  g_F10_server.on("/", HTTP_GET, [](AsyncWebServerRequest *p_request){
+    p_request->send(200, "text/html", G_F10_HTML_PAGE); // send_P 대신 send 사용
   });
 
   // 설정값 가져오기 핸들러
-  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
-    String json = "{";
-    json += "\"minSpeed\":" + String(fanMinSpeed) + ",";
-    json += "\"maxSpeed\":" + String(fanMaxSpeed) + ",";
-    json += "\"minInterval\":" + String(map(sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0)) + ","; // sineFrequency 역변환
-    json += "\"maxInterval\":" + String(randomInterval) + ",";
-    json += "\"pirEnabled\":" + String(pirSensorEnabled ? "true" : "false") + ",";
-    json += "\"dhtEnabled\":" + String(dhtSensorEnabled ? "true" : "false") + ",";
-    json += "\"tempThreshold\":" + String(dhtTempThreshold) + ",";
-    json += "\"humidThreshold\":" + String(dhtHumidThreshold);
-    json += "}";
-    request->send(200, "application/json", json);
+  g_F10_server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *p_request){
+    String v_json = "{";
+    v_json += "\"minSpeed\":" + String(g_F10_fanMinSpeed) + ",";
+    v_json += "\"maxSpeed\":" + String(g_F10_fanMaxSpeed) + ",";
+    // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 전송
+    v_json += "\"minInterval\":" + String(map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0)) + ",";
+    v_json += "\"maxInterval\":" + String(g_F10_randomInterval) + ",";
+    v_json += "\"pirEnabled\":" + String(g_F10_pirSensorEnabled ? "true" : "false") + ",";
+    v_json += "\"dhtEnabled\":" + String(g_F10_dhtSensorEnabled ? "true" : "false") + ",";
+    v_json += "\"tempThreshold\":" + String(g_F10_dhtTempThreshold) + ",";
+    v_json += "\"humidThreshold\":" + String(g_F10_dhtHumidThreshold);
+    v_json += "}";
+    p_request->send(200, "application/json", v_json);
   });
 
   // 설정값 업데이트 핸들러
-  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request){
-    // POST 요청 본문에서 파라미터 파싱
-    String requestBody = request->arg(0); // 첫 번째 POST 인자를 전체 JSON 문자열로 가정
+  g_F10_server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *p_request){
+    // 로컬 변수 정의 (v_ 접두사)
+    int v_newMinSpeed = p_request->arg("minSpeed").toInt();
+    if (v_newMinSpeed >= 0 && v_newMinSpeed <= 255) g_F10_fanMinSpeed = v_newMinSpeed;
     
-    // JSON 파싱을 위한 간단한 방법 (ESPAsyncWebServer는 form data 파싱이 더 일반적)
-    // 실제로는 ArduinoJson 라이브러리 사용이 권장되지만, 여기서는 간략화
-    
-    // minSpeed
-    int newMinSpeed = request->arg("minSpeed").toInt();
-    if (newMinSpeed >= 0 && newMinSpeed <= 255) fanMinSpeed = newMinSpeed;
-    
-    // maxSpeed
-    int newMaxSpeed = request->arg("maxSpeed").toInt();
-    if (newMaxSpeed >= 0 && newMaxSpeed <= 255) fanMaxSpeed = newMaxSpeed;
+    int v_newMaxSpeed = p_request->arg("maxSpeed").toInt();
+    if (v_newMaxSpeed >= 0 && v_newMaxSpeed <= 255) g_F10_fanMaxSpeed = v_newMaxSpeed;
 
-    // minInterval (사인파 주기) -> sineFrequency로 변환
-    long newMinInterval = request->arg("minInterval").toInt();
-    if (newMinInterval >= 100 && newMinInterval <= 5000) {
-      sineFrequency = map(newMinInterval, 100, 5000, 100, 1) / 100000.0;
+    long v_newMinInterval = p_request->arg("minInterval").toInt();
+    if (v_newMinInterval >= 100 && v_newMinInterval <= 5000) {
+      g_F10_sineFrequency = map(v_newMinInterval, 100, 5000, 100, 1) / 100000.0;
     }
     
-    // maxInterval (랜덤 변화 주기)
-    long newMaxInterval = request->arg("maxInterval").toInt();
-    if (newMaxInterval >= 500 && newMaxInterval <= 10000) randomInterval = newMaxInterval;
+    long v_newMaxInterval = p_request->arg("maxInterval").toInt();
+    if (v_newMaxInterval >= 500 && v_newMaxInterval <= 10000) g_F10_randomInterval = v_newMaxInterval;
 
-    // pirEnable
-    pirSensorEnabled = (request->arg("pirEnable") == "true");
+    g_F10_pirSensorEnabled = (p_request->arg("pirEnable") == "true");
+    g_F10_dhtSensorEnabled = (p_request->arg("dhtEnable") == "true");
 
-    // dhtEnable
-    dhtSensorEnabled = (request->arg("dhtEnable") == "true");
+    float v_newTempThreshold = p_request->arg("tempThreshold").toFloat();
+    if (!isnan(v_newTempThreshold)) g_F10_dhtTempThreshold = v_newTempThreshold;
 
-    // tempThreshold
-    float newTempThreshold = request->arg("tempThreshold").toFloat();
-    if (!isnan(newTempThreshold)) dhtTempThreshold = newTempThreshold;
-
-    // humidThreshold
-    float newHumidThreshold = request->arg("humidThreshold").toFloat();
-    if (!isnan(newHumidThreshold)) dhtHumidThreshold = newHumidThreshold;
+    float v_newHumidThreshold = p_request->arg("humidThreshold").toFloat();
+    if (!isnan(v_newHumidThreshold)) g_F10_dhtHumidThreshold = v_newHumidThreshold;
     
     // 설정 변경 후 시리얼 출력
     Serial.println("\n--- 설정 업데이트 ---");
-    Serial.print("Min Speed: "); Serial.println(fanMinSpeed);
-    Serial.print("Max Speed: "); Serial.println(fanMaxSpeed);
-    Serial.print("Sine Frequency: "); Serial.println(sineFrequency, 6); // 소수점 6자리까지 출력
-    Serial.print("Random Interval: "); Serial.println(randomInterval);
-    Serial.print("PIR Enabled: "); Serial.println(pirSensorEnabled ? "True" : "False");
-    Serial.print("DHT Enabled: "); Serial.println(dhtSensorEnabled ? "True" : "False");
-    Serial.print("Temp Threshold: "); Serial.println(dhtTempThreshold);
-    Serial.print("Humid Threshold: "); Serial.println(dhtHumidThreshold);
+    Serial.print("Min Speed: "); Serial.println(g_F10_fanMinSpeed);
+    Serial.print("Max Speed: "); Serial.println(g_F10_fanMaxSpeed);
+    Serial.print("Sine Frequency: "); Serial.println(g_F10_sineFrequency, 6); // 소수점 6자리까지 출력
+    Serial.print("Random Interval: "); Serial.println(g_F10_randomInterval);
+    Serial.print("PIR Enabled: "); Serial.println(g_F10_pirSensorEnabled ? "True" : "False");
+    Serial.print("DHT Enabled: "); Serial.println(g_F10_dhtSensorEnabled ? "True" : "False");
+    Serial.print("Temp Threshold: "); Serial.println(g_F10_dhtTempThreshold);
+    Serial.print("Humid Threshold: "); Serial.println(g_F10_dhtHumidThreshold);
     Serial.println("--------------------");
 
-    request->send(200, "text/plain", "설정 저장 완료!");
+    p_request->send(200, "text/plain", "설정 저장 완료!");
   });
 
   // 센서 데이터 가져오기 핸들러
-  server.on("/sensor_data", HTTP_GET, [](AsyncWebServerRequest *request){
-    String json = "{";
-    json += "\"temperature\":" + String(temperature, 1) + ","; // 소수점 1자리까지
-    json += "\"humidity\":" + String(humidity, 1) + ",";       // 소수점 1자리까지
-    json += "\"pirDetected\":" + String(digitalRead(pirPin) == HIGH ? "true" : "false");
-    json += "}";
-    request->send(200, "application/json", json);
+  g_F10_server.on("/sensor_data", HTTP_GET, [](AsyncWebServerRequest *p_request){
+    String v_json = "{";
+    v_json += "\"temperature\":" + String(g_F10_temperature, 1) + ","; // 소수점 1자리까지
+    v_json += "\"humidity\":" + String(g_F10_humidity, 1) + ",";       // 소수점 1자리까지
+    v_json += "\"pirDetected\":" + String(digitalRead(G_F10_PIR_PIN) == HIGH ? "true" : "false");
+    v_json += "}";
+    p_request->send(200, "application/json", v_json);
   });
 
   // 웹 서버 시작
-  server.begin();
+  g_F10_server.begin();
 }
 
-void F10_init() {
+/**
+ * @brief 센서 데이터를 읽고 전역 변수에 업데이트합니다.
+ * @param p_currentMillis 현재 밀리초 값
+ */
+void F10_readSensorData(unsigned long p_currentMillis) {
+  if (g_F10_dhtSensorEnabled && p_currentMillis - g_F10_lastDhtReadTime >= G_F10_DHT_READ_INTERVAL_MS) {
+    g_F10_lastDhtReadTime = p_currentMillis;
+    float v_h = g_F10_dht.readHumidity();
+    float v_t = g_F10_dht.readTemperature();
 
-  // 핀 모드 설정
-  pinMode(motorEnablePin, OUTPUT);
-  pinMode(motorInput1, OUTPUT);
-  pinMode(motorInput2, OUTPUT);
-  pinMode(pirPin, INPUT); // PIR 센서 입력 핀
-
-  // 모터 정방향으로 설정 (필요에 따라 반대로 설정해도 됨)
-  digitalWrite(motorInput1, HIGH);
-  digitalWrite(motorInput2, LOW);
-
-  // 난수 생성을 위한 시드 설정 (연결되지 않은 아날로그 핀의 노이즈 활용)
-  randomSeed(analogRead(0));
-
-  dht.begin(); // DHT 센서 시작
-
-  connectToWiFi(); // WiFi 네트워크 연결
-  setupWebHandlers(); // 웹 서버 핸들러 설정 및 시작
-
-  // 초기 사인파 주파수 설정 (웹 컨트롤러의 minInterval 기본값 500에 해당)
-  sineFrequency = map(500.0, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
-  // 초기 랜덤 변화 주기 설정 (웹 컨트롤러의 maxInterval 기본값 3000에 해당)
-  randomInterval = 3000;
-
-  Serial.println("아두이노 자연풍 선풍기 시작 (웹 제어 가능)!");
-}
-
-void F10_run() {
-  unsigned long currentMillis = millis();
-
-  // DHT 센서 데이터 읽기 (일정 간격마다)
-  if (dhtSensorEnabled && currentMillis - lastDhtReadTime >= DHT_READ_INTERVAL) {
-    lastDhtReadTime = currentMillis;
-    float h = dht.readHumidity();
-    float t = dht.readTemperature();
-
-    if (isnan(h) || isnan(t)) {
+    if (isnan(v_h) || isnan(v_t)) {
       Serial.println("DHT 센서 읽기 실패!");
       // 오류 발생 시 이전 값 유지 또는 기본값 설정
-      temperature = 0.0;
-      humidity = 0.0;
+      g_F10_temperature = 0.0;
+      g_F10_humidity = 0.0;
     } else {
-      temperature = t;
-      humidity = h;
-      // Serial.print("온도: "); Serial.print(temperature); Serial.print("°C, 습도: "); Serial.print(humidity); Serial.println("%");
+      g_F10_temperature = v_t;
+      g_F10_humidity = v_h;
+      // Serial.print("온도: "); Serial.print(g_F10_temperature); Serial.print("°C, 습도: "); Serial.print(g_F10_humidity); Serial.println("%");
     }
   }
+}
 
-  // 선풍기 작동 조건 결정
-  bool fanShouldRun = false;
+/**
+ * @brief 선풍기 작동 조건을 결정합니다.
+ * @param p_currentMillis 현재 밀리초 값
+ * @return 선풍기가 작동해야 하는지 여부 (true/false)
+ */
+bool F10_determineFanRunCondition(unsigned long p_currentMillis) {
+  bool v_fanShouldRun = false;
 
   // 1. PIR 센서 적용 여부 확인
-  if (pirSensorEnabled) {
-    if (digitalRead(pirPin) == HIGH) { // PIR 센서에서 움직임 감지
-      lastPirDetectionTime = currentMillis; // 마지막 감지 시간 갱신
-      fanShouldRun = true; // 선풍기 작동 허용
+  if (g_F10_pirSensorEnabled) {
+    if (digitalRead(G_F10_PIR_PIN) == HIGH) { // PIR 센서에서 움직임 감지
+      g_F10_lastPirDetectionTime = p_currentMillis; // 마지막 감지 시간 갱신
+      v_fanShouldRun = true; // 선풍기 작동 허용
       // Serial.println("PIR 감지! 선풍기 작동.");
-    } else if (currentMillis - lastPirDetectionTime < PIR_INACTIVE_TIMEOUT) {
-      // 움직임이 없더라도 'PIR_INACTIVE_TIMEOUT' 동안은 작동 유지
-      fanShouldRun = true;
+    } else if (p_currentMillis - g_F10_lastPirDetectionTime < G_F10_PIR_INACTIVE_TIMEOUT_MS) {
+      // 움직임이 없더라도 'G_F10_PIR_INACTIVE_TIMEOUT_MS' 동안은 작동 유지
+      v_fanShouldRun = true;
       // Serial.println("PIR 감지 후 유지 시간.");
     }
   } else {
     // PIR 센서가 비활성화된 경우, 항상 선풍기 작동을 허용
-    fanShouldRun = true;
+    v_fanShouldRun = true;
   }
 
   // 2. DHT 센서 적용 여부 및 조건 확인 (PIR이 작동을 허용했을 때만 추가 검토)
-  if (dhtSensorEnabled && fanShouldRun) {
+  if (g_F10_dhtSensorEnabled && v_fanShouldRun) {
     // 현재 온도와 습도가 임계값 미만이면 선풍기 정지
-    if (temperature < dhtTempThreshold || humidity < dhtHumidThreshold) {
-      fanShouldRun = false; // 온도 또는 습도 조건 미달 시 선풍기 정지
+    if (g_F10_temperature < g_F10_dhtTempThreshold || g_F10_humidity < g_F10_dhtHumidThreshold) {
+      v_fanShouldRun = false; // 온도 또는 습도 조건 미달 시 선풍기 정지
       // Serial.println("DHT 조건 미달. 선풍기 정지.");
     }
   }
+  return v_fanShouldRun;
+}
+
+/**
+ * @brief 자연풍 로직에 따라 모터 속도를 제어합니다.
+ * 사인파와 랜덤 요소를 결합하여 자연스러운 바람을 생성합니다.
+ * @param p_currentMillis 현재 밀리초 값
+ */
+void F10_controlNaturalFan(unsigned long p_currentMillis) {
+  // 1. 사인파 기반 기본 속도 계산
+  // g_F10_sineAngle은 시간에 따라 연속적으로 증가하여 sin() 함수의 입력으로 사용
+  g_F10_sineAngle += g_F10_sineFrequency * (p_currentMillis - g_F10_previousSineMillis);
+  g_F10_previousSineMillis = p_currentMillis;
+
+  // sin() 함수는 -1에서 1 사이의 값을 반환하므로, 이를 0에서 255 (또는 g_F10_fanMinSpeed ~ g_F10_fanMaxSpeed) 범위로 매핑
+  // (sin(angle) + 1.0) 은 0 ~ 2 범위
+  float v_baseSpeed = (g_F10_fanMaxSpeed - g_F10_fanMinSpeed) / 2.0 * (sin(g_F10_sineAngle) + 1.0) + g_F10_fanMinSpeed;
+
+  // 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
+  if (p_currentMillis - g_F10_previousRandomMillis >= g_F10_randomInterval) {
+    g_F10_previousRandomMillis = p_currentMillis;
+    // -G_F10_RANDOM_DEVIATION 부터 +G_F10_RANDOM_DEVIATION 까지의 랜덤 값 생성
+    g_F10_randomOffset = random(-G_F10_RANDOM_DEVIATION, G_F10_RANDOM_DEVIATION + 1);
+  }
+  
+  // 최종 모터 속도 계산 (사인파 기반 속도 + 랜덤 오프셋)
+  g_F10_currentMotorSpeed = v_baseSpeed + g_F10_randomOffset;
+  
+  // 계산된 속도 값이 설정된 최소/최대 속도 범위를 벗어나지 않도록 제한
+  g_F10_currentMotorSpeed = constrain(g_F10_currentMotorSpeed, g_F10_fanMinSpeed, g_F10_fanMaxSpeed);
+
+  // 모터 속도 적용 (PWM 값은 정수여야 함)
+  analogWrite(G_F10_MOTOR_ENABLE_PIN, (int)g_F10_currentMotorSpeed);
+}
+
+/**
+ * @brief 선풍기를 완전히 정지시킵니다.
+ */
+void F10_stopFan() {
+  g_F10_currentMotorSpeed = 0;
+  analogWrite(G_F10_MOTOR_ENABLE_PIN, 0);
+  // Serial.println("선풍기 정지.");
+}
+
+/**
+ * @brief 시스템 초기화 함수. setup()에서 호출됩니다.
+ */
+void F10_init() {
+  
+  // 핀 모드 설정
+  pinMode(G_F10_MOTOR_ENABLE_PIN, OUTPUT);
+  pinMode(G_F10_MOTOR_INPUT1_PIN, OUTPUT);
+  pinMode(G_F10_MOTOR_INPUT2_PIN, OUTPUT);
+  pinMode(G_F10_PIR_PIN, INPUT); // PIR 센서 입력 핀
+
+  // 모터 정방향으로 설정 (필요에 따라 반대로 설정해도 됨)
+  digitalWrite(G_F10_MOTOR_INPUT1_PIN, HIGH);
+  digitalWrite(G_F10_MOTOR_INPUT2_PIN, LOW);
+
+  // 난수 생성을 위한 시드 설정 (연결되지 않은 아날로그 핀의 노이즈 활용)
+  randomSeed(analogRead(0));
+
+  g_F10_dht.begin(); // DHT 센서 시작
+
+  F10_connectToWiFi(); // WiFi 네트워크 연결
+  F10_setupWebHandlers(); // 웹 서버 핸들러 설정 및 시작
+
+  // 초기 사인파 주파수 설정 (웹 컨트롤러의 minInterval 기본값 500에 해당)
+  g_F10_sineFrequency = map(500.0, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
+  // 초기 랜덤 변화 주기 설정 (웹 컨트롤러의 maxInterval 기본값 3000에 해당)
+  g_F10_randomInterval = 3000;
+
+  Serial.println("아두이노 자연풍 선풍기 시스템 초기화 완료!");
+}
+
+/**
+ * @brief 시스템 메인 루프 함수. loop()에서 호출됩니다.
+ */
+void F10_run() {
+  unsigned long v_currentMillis = millis();
+
+  F10_readSensorData(v_currentMillis); // 센서 데이터 읽기
+
+  bool v_fanShouldRun = F10_determineFanRunCondition(v_currentMillis); // 선풍기 작동 조건 결정
 
   // 최종 결정에 따라 선풍기 작동 로직 실행
-  if (fanShouldRun) {
-    // 자연풍 로직 (사인파 + 랜덤 결합)
-    // 1. 사인파 기반 기본 속도 계산
-    // sineAngle은 시간에 따라 연속적으로 증가하여 sin() 함수의 입력으로 사용
-    sineAngle += sineFrequency * (currentMillis - previousSineMillis);
-    previousSineMillis = currentMillis;
-
-    // sin() 함수는 -1에서 1 사이의 값을 반환하므로, 이를 0에서 255 (또는 fanMinSpeed ~ fanMaxSpeed) 범위로 매핑
-    // (sin(angle) + 1.0) 은 0 ~ 2 범위
-    float baseSpeed = (fanMaxSpeed - fanMinSpeed) / 2.0 * (sin(sineAngle) + 1.0) + fanMinSpeed;
-
-    // 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
-    if (currentMillis - previousRandomMillis >= randomInterval) {
-      previousRandomMillis = currentMillis;
-      // -RANDOM_DEVIATION 부터 +RANDOM_DEVIATION 까지의 랜덤 값 생성
-      randomOffset = random(-RANDOM_DEVIATION, RANDOM_DEVIATION + 1);
-    }
-    
-    // 최종 모터 속도 계산 (사인파 기반 속도 + 랜덤 오프셋)
-    currentMotorSpeed = baseSpeed + randomOffset;
-    
-    // 계산된 속도 값이 설정된 최소/최대 속도 범위를 벗어나지 않도록 제한
-    currentMotorSpeed = constrain(currentMotorSpeed, fanMinSpeed, fanMaxSpeed);
-
-    // 모터 속도 적용 (PWM 값은 정수여야 함)
-    analogWrite(motorEnablePin, (int)currentMotorSpeed);
+  if (v_fanShouldRun) {
+    F10_controlNaturalFan(v_currentMillis); // 자연풍 로직에 따라 모터 제어
   } else {
-    // 선풍기 정지
-    currentMotorSpeed = 0;
-    analogWrite(motorEnablePin, 0);
-    // Serial.println("선풍기 정지.");
+    F10_stopFan(); // 선풍기 정지
   }
   
   // 다음 루프 실행까지 짧은 딜레이를 주어 안정적인 작동 및 속도 변화의 부드러움을 유지
-  delay(10);
+  delay(G_F10_LOOP_DELAY_MS);
 }
