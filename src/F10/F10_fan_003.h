@@ -328,8 +328,19 @@ void F10_controlNaturalFan(unsigned long p_currentMillis) {
 	// 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
 	if (p_currentMillis - g_F10_previousRandomMillis >= g_F10_randomInterval) {
 		g_F10_previousRandomMillis = p_currentMillis;
+		// esp_random()은 0부터 2^32-1까지의 난수를 반환.
+        // G_F10_RANDOM_DEVIATION 범위 내의 (음수 포함) 랜덤 값을 생성
+        // 예: G_F10_RANDOM_DEVIATION이 20이면 -20부터 20까지 (총 41개)의 값을 생성
+		g_F10_randomOffset		   = (int)esp_random() % (2 * G_F10_RANDOM_DEVIATION + 1) - G_F10_RANDOM_DEVIATION;
+	}
+	
+    /*
+	// 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
+	if (p_currentMillis - g_F10_previousRandomMillis >= g_F10_randomInterval) {
+		g_F10_previousRandomMillis = p_currentMillis;
 		g_F10_randomOffset		   = random(-G_F10_RANDOM_DEVIATION, G_F10_RANDOM_DEVIATION + 1);
 	}
+    */
 
 	// 최종 모터 속도 계산 (사인파 기반 속도 + 랜덤 오프셋)
 	g_F10_currentMotorSpeed = v_baseSpeed + g_F10_randomOffset;
@@ -365,7 +376,7 @@ void F10_init() {
 	digitalWrite(G_F10_MOTOR_INPUT2_PIN, LOW);
 
 	// 난수 생성을 위한 시드 설정 (연결되지 않은 아날로그 핀의 노이즈 활용)
-	randomSeed(analogRead(0));
+	// randomSeed(analogRead(0));
 
 	g_F10_dht.begin();	// DHT 센서 시작
 
