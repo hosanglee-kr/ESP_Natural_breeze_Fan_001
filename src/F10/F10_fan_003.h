@@ -331,7 +331,7 @@ void F10_controlNaturalFan(unsigned long p_currentMillis) {
 		// esp_random()은 0부터 2^32-1까지의 난수를 반환.
         // G_F10_RANDOM_DEVIATION 범위 내의 (음수 포함) 랜덤 값을 생성
         // 예: G_F10_RANDOM_DEVIATION이 20이면 -20부터 20까지 (총 41개)의 값을 생성
-		g_F10_randomOffset		   = (int)esp_random() % (2 * G_F10_RANDOM_DEVIATION + 1) - G_F10_RANDOM_DEVIATION;
+		g_F10_randomOffset = (int)esp_random() % (2 * G_F10_RANDOM_DEVIATION + 1) - G_F10_RANDOM_DEVIATION;
 	}
 	
     /*
