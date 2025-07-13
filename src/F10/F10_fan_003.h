@@ -73,6 +73,39 @@ unsigned long		g_F10_lastDhtReadTime	   = 0;
 // --- 함수 정의 (F10_ 접두사) ---
 
 /**
+ * @brief 주어진 값을 한 범위에서 다른 범위로 매핑합니다.
+ * 부동 소수점(float) 값을 지원하며, 결과가 toLow/toHigh 범위를 벗어나지 않도록 제한합니다.
+ * @param p_value 매핑할 입력 값
+ * @param p_fromLow 입력 범위의 최소값
+ * @param p_fromHigh 입력 범위의 최대값
+ * @param p_toLow 출력 범위의 최소값
+ * @param p_toHigh 출력 범위의 최대값
+ * @return 매핑된 float 값 (toLow와 toHigh 사이로 제한됨)
+ */
+float F10_mapFloat(float p_value, float p_fromLow, float p_fromHigh, float p_toLow, float p_toHigh) {
+    // 맵핑 로직: (입력값 - 입력최소) * (출력최대 - 출력최소) / (입력최대 - 입력최소) + 출력최소
+    float v_result = (p_value - p_fromLow) * (p_toHigh - p_toLow) / (p_fromHigh - p_fromLow) + p_toLow;
+
+    // 결과 값을 toLow와 toHigh 사이로 제한 (constrain 역할)
+    if (p_toLow < p_toHigh) {
+        return constrain(v_result, p_toLow, p_toHigh);
+    } else { // toLow가 toHigh보다 클 경우 (역방향 맵핑)
+        return constrain(v_result, p_toHigh, p_toLow);
+    }
+}
+
+// 필요하다면 double 버전도 구현할 수 있습니다.
+double F10_mapDouble(double p_value, double p_fromLow, double p_fromHigh, double p_toLow, double p_toHigh) {
+    double v_result = (p_value - p_fromLow) * (p_toHigh - p_toLow) / (p_fromHigh - p_fromLow) + p_toLow;
+    if (p_toLow < p_toHigh) {
+        return constrain(v_result, p_toLow, p_toHigh);
+    } else {
+        return constrain(v_result, p_toHigh, p_toLow);
+    }
+}
+
+
+/**
  * @brief 설정값을 LittleFS 파일에 JSON 형식으로 저장합니다.
  */
 void F10_saveJson_Settings() {
