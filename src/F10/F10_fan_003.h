@@ -11,20 +11,20 @@
 
 // --- 전역 상수 정의 (G_F10_ 접두사) ---
 // WiFi 설정 (본인의 WiFi 정보로 변경하세요)
-const char* G_F10_WIFI_SSID		   = "YOUR_WIFI_SSID";
-const char* G_F10_WIFI_PASSWORD	   = "YOUR_WIFI_PASSWORD";
+const char*    G_F10_WIFI_SSID		         = "YOUR_WIFI_SSID";
+const char*    G_F10_WIFI_PASSWORD	         = "YOUR_WIFI_PASSWORD";
 
 // 모터 드라이버 핀 정의 (L298N 기준)
-const int	G_F10_MOTOR_ENABLE_PIN = 25;  // 모터 속도 제어 (PWM 핀)
-const int	G_F10_MOTOR_INPUT1_PIN = 26;  // 모터 방향 제어 핀 1
-const int	G_F10_MOTOR_INPUT2_PIN = 27;  // 모터 방향 제어 핀 2
+const int	   G_F10_MOTOR_ENABLE_PIN        = 25;     // 모터 속도 제어 (PWM 핀)
+const int	   G_F10_MOTOR_INPUT1_PIN        = 26;     // 모터 방향 제어 핀 1
+const int	   G_F10_MOTOR_INPUT2_PIN        = 27;     // 모터 방향 제어 핀 2
 
 // DHT11 센서 설정
-const int	G_F10_DHT_PIN		   = 14;  // DHT 데이터 핀 (예: GPIO 14)
-#define G_F10_DHT_TYPE DHT11			  // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
+const int	   G_F10_DHT_PIN		         = 14;     // DHT 데이터 핀 (예: GPIO 14)
+#define        G_F10_DHT_TYPE                  DHT11   // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
 
 // PIR 센서 설정
-const int	   G_F10_PIR_PIN				 = 13;	// PIR 센서 OUT 핀 (예: GPIO 13)
+const int	   G_F10_PIR_PIN				 = 13;	   // PIR 센서 OUT 핀 (예: GPIO 13)
 
 // 자연풍 로직 내부 상수
 const int	   G_F10_RANDOM_DEVIATION		 = 20;	   // 사인파 기본 속도에 더해질 랜덤 값의 최대 편차 (PWM 값)
@@ -44,40 +44,38 @@ AsyncWebServer		g_F10_server(80);
 DHT					g_F10_dht(G_F10_DHT_PIN, G_F10_DHT_TYPE);
 
 // 자연풍 선풍기 설정 변수 (웹에서 제어)
-int					g_F10_fanMinSpeed		  = 80;	  // 최소 바람 세기 (0-255 PWM 값)
-int					g_F10_fanMaxSpeed		  = 255;  // 최대 바람 세기 (0-255 PWM 값)
+int					g_F10_fanMinSpeed		   = 80;	     // 최소 바람 세기 (0-255 PWM 값)
+int					g_F10_fanMaxSpeed		   = 255;        // 최대 바람 세기 (0-255 PWM 값)
 
 // 사인파 및 랜덤 변화 관련 변수 (웹에서 제어)
-float				g_F10_sineFrequency		    = 0.0005;	 // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
-long				g_F10_randomInterval		  = 3000;	 // 랜덤 값을 얼마나 자주 갱신할지 (ms)
+float				g_F10_sineFrequency		   = 0.0005;	 // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
+long				g_F10_randomInterval	   = 3000;	     // 랜덤 값을 얼마나 자주 갱신할지 (ms)
 
-bool				g_F10_pirSensorEnabled	  = false;	// PIR 센서 적용 여부
-bool				g_F10_dhtSensorEnabled	  = false;	// DHT11 센서 적용 여부
-float				g_F10_dhtTempThreshold	  = 28.0;	// DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
-float				g_F10_dhtHumidThreshold	  = 70.0;	// DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
+bool				g_F10_pirSensorEnabled	   = false;	     // PIR 센서 적용 여부
+bool				g_F10_dhtSensorEnabled	   = false;	     // DHT11 센서 적용 여부
+float				g_F10_dhtTempThreshold	   = 28.0;	     // DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
+float				g_F10_dhtHumidThreshold	   = 70.0;	     // DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
 
 // 자연풍 로직 내부 변수
-float				g_F10_currentMotorSpeed	  = 0;	// 부드러운 변화를 위해 float 사용
-unsigned long		g_F10_previousSineMillis	  = 0;
-float		        g_F10_sineAngle			  = 0;	// 사인파의 현재 각도
+float				g_F10_currentMotorSpeed	   = 0;          // 부드러운 변화를 위해 float 사용
+unsigned long		g_F10_previousSineMillis   = 0;
+float		        g_F10_sineAngle			   = 0;	         // 사인파의 현재 각도
 unsigned long		g_F10_previousRandomMillis = 0;
-int					g_F10_randomOffset		  = 0;	// 현재 랜덤 오프셋
+int					g_F10_randomOffset		   = 0;	         // 현재 랜덤 오프셋
 
 // 센서 상태 및 제어 로직 변수
 unsigned long		g_F10_lastPirDetectionTime = 0;
-float				g_F10_temperature		  = 0.0;
-float				g_F10_humidity			  = 0.0;
-unsigned long		g_F10_lastDhtReadTime	  = 0;
+float				g_F10_temperature		   = 0.0;
+float				g_F10_humidity			   = 0.0;
+unsigned long		g_F10_lastDhtReadTime	   = 0;
 
-// 웹 페이지 내용 (이제 G_F10_HTML_PAGE는 사용하지 않습니다. 파일에서 불러옵니다.)
-// const char* G_F10_HTML_PAGE PROGMEM = R"rawliteral(...)";
 
 // --- 함수 정의 (F10_ 접두사) ---
 
 /**
  * @brief 설정값을 LittleFS 파일에 JSON 형식으로 저장합니다.
  */
-void		   F10_saveJson_Settings() {
+void F10_saveJson_Settings() {
 	  // 로컬 변수 정의 (v_ 접두사)
 	  JsonDocument v_doc;  // JSON 문서 크기 (필요에 따라 조절)
 
