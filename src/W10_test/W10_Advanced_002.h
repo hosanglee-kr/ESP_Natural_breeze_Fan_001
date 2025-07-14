@@ -7,6 +7,8 @@
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <OneButton.h>   // OneButton 라이브러리 추가
 
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 
 #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
 // OneButton 객체 생성
@@ -21,6 +23,20 @@ bool                 g_W10_wm_nonblocking = false; // true로 변경하면 논�
 
 WiFiManager          g_W10_WifiManager;            // 전역 WiFiManager 인스턴스
 WiFiManagerParameter g_W10_custom_field;    // 전역 매개변수 (논블로킹 모드에서 매개변수 사용 시)
+
+
+//define your default values here, if there are different values in config.json, they are overwritten.
+//length should be max size + 1
+char mqtt_server[40];
+char mqtt_port[6] = "8080";
+char api_token[34] = "YOUR_APITOKEN";
+//default custom static IP
+char static_ip[16] = "10.0.1.56";
+char static_gw[16] = "10.0.1.1";
+char static_sn[16] = "255.255.255.0";
+
+//flag for saving data
+bool shouldSaveConfig = false;
 
 
 
