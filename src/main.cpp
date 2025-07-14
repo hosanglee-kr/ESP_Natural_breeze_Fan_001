@@ -24,7 +24,7 @@
 
 #define W40
 #ifdef W40
-	#include "W10_test/W40_OnDemandConfigPortal_001.h"
+	#include "W10_test/W40_Super_OnDemandConfigPortal_001.h"
 #endif
 
 
