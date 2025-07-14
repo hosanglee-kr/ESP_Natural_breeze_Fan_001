@@ -115,7 +115,9 @@ void F10_saveJson_Settings() {
 	  v_doc["minSpeed"]				= g_F10_fanMinSpeed;
 	  v_doc["maxSpeed"]				= g_F10_fanMaxSpeed;
 
-	  v_doc["minInterval"]			= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);  	  // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 저장
+	v_doc["minInterval"] = F10_mapFloat(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+
+	  // v_doc["minInterval"]			= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);  	  // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 저장
 	  v_doc["maxInterval"]			= g_F10_randomInterval;
 	  v_doc["pirEnabled"]			= g_F10_pirSensorEnabled;
 	  v_doc["dhtEnabled"]			= g_F10_dhtSensorEnabled;
@@ -162,7 +164,8 @@ void F10_loadJson_Settings() {
 	g_F10_fanMaxSpeed		 = v_doc["maxSpeed"] | g_F10_fanMaxSpeed;
 
 	long v_loadedMinInterval = v_doc["minInterval"] | 500;					// 웹 기본값 500 사용
-	g_F10_sineFrequency		 = map((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
+	g_F10_sineFrequency = F10_mapFloat((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
+	// g_F10_sineFrequency		 = map((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
 
 	g_F10_randomInterval	 = v_doc["maxInterval"] | g_F10_randomInterval;
 	g_F10_pirSensorEnabled	 = v_doc["pirEnabled"] | g_F10_pirSensorEnabled;
@@ -211,7 +214,8 @@ void F10_setupWebHandlers() {
 		v_doc["minSpeed"]		= g_F10_fanMinSpeed;
 		v_doc["maxSpeed"]		= g_F10_fanMaxSpeed;
 		// 사인파 주파수를 웹의 minInterval 값으로 역변환하여 전송
-		v_doc["minInterval"]	= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+		v_doc["minInterval"] = F10_mapFloat(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+		// v_doc["minInterval"]	= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
 		v_doc["maxInterval"]	= g_F10_randomInterval;
 		v_doc["pirEnabled"]		= g_F10_pirSensorEnabled;
 		v_doc["dhtEnabled"]		= g_F10_dhtSensorEnabled;
