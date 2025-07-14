@@ -5,8 +5,15 @@
  * TRIGGEN_PIN 버튼 누름을 구현합니다. 한 번 누르면 온디맨드 설정 포털이 실행되고, 3초간 누르면 설정이 초기화됩니다.
  */
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <OneButton.h>   // OneButton 라이브러리 추가
+
 
 #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
+// OneButton 객체 생성
+// G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
+OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
+
+
 
 // wifimanager는 블로킹 모드 또는 논블로킹 모드로 실행될 수 있습니다.
 // 논블로킹 모드를 사용하는 경우 delay() 없이 루프를 처리하는 방법을 알아야 합니다.
@@ -18,7 +25,9 @@ WiFiManagerParameter g_W10_custom_field;    // 전역 매개변수 (논블로킹
 
 
 
-void    W10_checkButton(); // 버튼 상태를 확인하는 함수
+void W10_startConfigPortal();
+void W10_resetSettings();
+
 String    W10_getParam(String name); // 사용자 정의 매개변수 값을 가져오는 함수
 void    W10_saveParamCallback(); // 매개변수 저장 시 호출되는 콜백 함수
 
@@ -97,40 +106,33 @@ void W10_init() {
         // 여기에 도달했다면 Wi-Fi에 연결되었습니다.
         Serial.println("연결 성공 :)");
     }
+
+	// OneButton 콜백 함수 설정
+    // 짧게 눌렀을 때 (클릭)
+    g_W10_button.attachClick(W10_startConfigPortal);
+    // 길게 눌렀을 때 (롱 프레스 스타트) - 여기서는 롱 프레스가 시작되는 시점에 바로 처리
+    g_W10_button.attachLongPressStart(W10_resetSettings);
 }
 
-void W10_checkButton() {
-    // 버튼 누름 확인
-    if (digitalRead(G_W10_TRIGGER_PIN) == LOW) {
-        // 간단한 디바운스/누름-홀드 처리, 실제 제품에는 적합하지 않은 코드
-        delay(50);
-        if (digitalRead(G_W10_TRIGGER_PIN) == LOW) {
-            Serial.println("버튼이 눌렸습니다.");
-            // 3000ms 동안 계속 버튼을 누르고 있으면 설정 초기화, 실제 제품에는 적합하지 않은 코드
-            delay(3000);  // 재설정 지연 시간
-            if (digitalRead(G_W10_TRIGGER_PIN) == LOW) {
-                Serial.println("버튼이 길게 눌렸습니다.");
-                Serial.println("설정 초기화 중, 재시작합니다.");
-                g_W10_WifiManager.resetSettings(); // WiFiManager 설정 초기화
-                ESP.restart(); // ESP 재시작
-            }
+// 설정 포털을 시작하는 함수
+void W10_startConfigPortal() {
+    Serial.println("버튼이 클릭되었습니다. 설정 포털을 시작합니다.");
+    g_W10_WifiManager.setConfigPortalTimeout(120); // 설정 포털 타임아웃을 120초로 설정
 
-            // 지연 후 포털 시작
-            Serial.println("설정 포털을 시작합니다.");
-            g_W10_WifiManager.setConfigPortalTimeout(120); // 설정 포털 타임아웃을 120초로 설정
-
-            if (!g_W10_WifiManager.startConfigPortal("OnDemandAP", "password")) {
-                Serial.println("연결 실패 또는 타임아웃 발생");
-                delay(3000);
-                // ESP.restart(); // ESP 재시작 (필요 시 주석 해제)
-            } else {
-                // 여기에 도달했다면 Wi-Fi에 연결되었습니다.
-                Serial.println("연결 성공 :)");
-            }
-        }
+    if (!g_W10_WifiManager.startConfigPortal("OnDemandAP", "password")) {
+        Serial.println("설정 포털 연결 실패 또는 타임아웃 발생");
+        delay(3000);
+        // ESP.restart(); // ESP 재시작 (필요 시 주석 해제)
+    } else {
+        Serial.println("Wi-Fi 연결 성공 :)");
     }
 }
-
+// 설정을 초기화하고 재시작하는 함수
+void W10_resetSettings() {
+    Serial.println("버튼이 길게 눌렸습니다. 설정을 초기화하고 재시작합니다.");
+    g_W10_WifiManager.resetSettings(); // WiFiManager 설정 초기화
+    ESP.restart(); // ESP 재시작
+}
 
 String W10_getParam(String name) {
     // 서버에서 매개변수 읽기 (사용자 정의 HTML 입력용)
@@ -148,7 +150,8 @@ void W10_saveParamCallback() {
 }
 
 void W10_run() {
-    if (g_W10_wm_nonblocking) g_W10_WifiManager.process();  // 논블로킹 모드에서 delay()를 피하고 다른 장시간 실행 코드 처리
-    W10_checkButton(); // 버튼 상태 확인
-    // 여기에 반복적으로 실행할 주요 코드를 추가합니다.
+    if (g_W10_wm_nonblocking) {
+		g_W10_WifiManager.process();  // 논블로킹 모드에서 delay()를 피하고 다른 장시간 실행 코드 처리
+	}
+    g_W10_button.tick(); // OneButton 라이브러리의 상태 업데이트 함수 호출
 }
