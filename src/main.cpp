@@ -3,7 +3,7 @@
 
 #define F10
 #ifdef F10
-	#include "F10/F10_fan_003.h"
+	#include "F10/F10_fan_004.h"
 #endif
 
 void setup() {
