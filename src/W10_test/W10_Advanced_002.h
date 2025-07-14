@@ -9,6 +9,7 @@
 
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <FS.h>
 
 #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
 // OneButton 객체 생성
