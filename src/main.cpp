@@ -9,7 +9,7 @@
 
 #define W10
 #ifdef W10
-	#include "W10_test/W10_Advanced_001.h"
+	#include "W10_test/W10_Advanced_002.h"
 #endif
 
 #define W20
