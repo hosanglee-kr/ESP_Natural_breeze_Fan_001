@@ -1,6 +1,6 @@
 #pragma once
 
-// ESP_Natural_breeze_Fan_001
+// ESP_Natural_breeze_Fan_003
 
 #include <Arduino.h>
 #include <ArduinoJson.h>  // ArduinoJson 라이브러리 추가
@@ -11,20 +11,20 @@
 
 // --- 전역 상수 정의 (G_F10_ 접두사) ---
 // WiFi 설정 (본인의 WiFi 정보로 변경하세요)
-const char* G_F10_WIFI_SSID		   = "YOUR_WIFI_SSID";
-const char* G_F10_WIFI_PASSWORD	   = "YOUR_WIFI_PASSWORD";
+const char*    G_F10_WIFI_SSID		         = "YOUR_WIFI_SSID";
+const char*    G_F10_WIFI_PASSWORD	         = "YOUR_WIFI_PASSWORD";
 
 // 모터 드라이버 핀 정의 (L298N 기준)
-const int	G_F10_MOTOR_ENABLE_PIN = 25;  // 모터 속도 제어 (PWM 핀)
-const int	G_F10_MOTOR_INPUT1_PIN = 26;  // 모터 방향 제어 핀 1
-const int	G_F10_MOTOR_INPUT2_PIN = 27;  // 모터 방향 제어 핀 2
+const int	   G_F10_MOTOR_ENABLE_PIN        = 25;     // 모터 속도 제어 (PWM 핀)
+const int	   G_F10_MOTOR_INPUT1_PIN        = 26;     // 모터 방향 제어 핀 1
+const int	   G_F10_MOTOR_INPUT2_PIN        = 27;     // 모터 방향 제어 핀 2
 
 // DHT11 센서 설정
-const int	G_F10_DHT_PIN		   = 14;  // DHT 데이터 핀 (예: GPIO 14)
-#define G_F10_DHT_TYPE DHT11			  // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
+const int	   G_F10_DHT_PIN		         = 14;     // DHT 데이터 핀 (예: GPIO 14)
+#define        G_F10_DHT_TYPE                  DHT11   // DHT11 센서 사용 (DHT22를 사용하려면 DHT22로 변경)
 
 // PIR 센서 설정
-const int	   G_F10_PIR_PIN				 = 13;	// PIR 센서 OUT 핀 (예: GPIO 13)
+const int	   G_F10_PIR_PIN				 = 13;	   // PIR 센서 OUT 핀 (예: GPIO 13)
 
 // 자연풍 로직 내부 상수
 const int	   G_F10_RANDOM_DEVIATION		 = 20;	   // 사인파 기본 속도에 더해질 랜덤 값의 최대 편차 (PWM 값)
@@ -44,47 +44,80 @@ AsyncWebServer		g_F10_server(80);
 DHT					g_F10_dht(G_F10_DHT_PIN, G_F10_DHT_TYPE);
 
 // 자연풍 선풍기 설정 변수 (웹에서 제어)
-int					g_F10_fanMinSpeed		  = 80;	  // 최소 바람 세기 (0-255 PWM 값)
-int					g_F10_fanMaxSpeed		  = 255;  // 최대 바람 세기 (0-255 PWM 값)
+int					g_F10_fanMinSpeed		   = 80;	     // 최소 바람 세기 (0-255 PWM 값)
+int					g_F10_fanMaxSpeed		   = 255;        // 최대 바람 세기 (0-255 PWM 값)
 
 // 사인파 및 랜덤 변화 관련 변수 (웹에서 제어)
-float				g_F10_sineFrequency		    = 0.0005;	 // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
-long				g_F10_randomInterval		  = 3000;	 // 랜덤 값을 얼마나 자주 갱신할지 (ms)
+float				g_F10_sineFrequency		   = 0.0005;	 // 사인파 주기 조절 (값이 작을수록 주기가 길어짐)
+long				g_F10_randomInterval	   = 3000;	     // 랜덤 값을 얼마나 자주 갱신할지 (ms)
 
-bool				g_F10_pirSensorEnabled	  = false;	// PIR 센서 적용 여부
-bool				g_F10_dhtSensorEnabled	  = false;	// DHT11 센서 적용 여부
-float				g_F10_dhtTempThreshold	  = 28.0;	// DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
-float				g_F10_dhtHumidThreshold	  = 70.0;	// DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
+bool				g_F10_pirSensorEnabled	   = false;	     // PIR 센서 적용 여부
+bool				g_F10_dhtSensorEnabled	   = false;	     // DHT11 센서 적용 여부
+float				g_F10_dhtTempThreshold	   = 28.0;	     // DHT 온도 임계값 (°C, 이 온도 이상일 때 선풍기 작동)
+float				g_F10_dhtHumidThreshold	   = 70.0;	     // DHT 습도 임계값 (%, 이 습도 이상일 때 선풍기 작동)
 
 // 자연풍 로직 내부 변수
-float				g_F10_currentMotorSpeed	  = 0;	// 부드러운 변화를 위해 float 사용
-unsigned long		g_F10_previousSineMillis	  = 0;
-float		        g_F10_sineAngle			  = 0;	// 사인파의 현재 각도
+float				g_F10_currentMotorSpeed	   = 0;          // 부드러운 변화를 위해 float 사용
+unsigned long		g_F10_previousSineMillis   = 0;
+float		        g_F10_sineAngle			   = 0;	         // 사인파의 현재 각도
 unsigned long		g_F10_previousRandomMillis = 0;
-int					g_F10_randomOffset		  = 0;	// 현재 랜덤 오프셋
+int					g_F10_randomOffset		   = 0;	         // 현재 랜덤 오프셋
 
 // 센서 상태 및 제어 로직 변수
 unsigned long		g_F10_lastPirDetectionTime = 0;
-float				g_F10_temperature		  = 0.0;
-float				g_F10_humidity			  = 0.0;
-unsigned long		g_F10_lastDhtReadTime	  = 0;
+float				g_F10_temperature		   = 0.0;
+float				g_F10_humidity			   = 0.0;
+unsigned long		g_F10_lastDhtReadTime	   = 0;
 
-// 웹 페이지 내용 (이제 G_F10_HTML_PAGE는 사용하지 않습니다. 파일에서 불러옵니다.)
-// const char* G_F10_HTML_PAGE PROGMEM = R"rawliteral(...)";
 
 // --- 함수 정의 (F10_ 접두사) ---
 
 /**
+ * @brief 주어진 값을 한 범위에서 다른 범위로 매핑합니다.
+ * 부동 소수점(float) 값을 지원하며, 결과가 toLow/toHigh 범위를 벗어나지 않도록 제한합니다.
+ * @param p_value 매핑할 입력 값
+ * @param p_fromLow 입력 범위의 최소값
+ * @param p_fromHigh 입력 범위의 최대값
+ * @param p_toLow 출력 범위의 최소값
+ * @param p_toHigh 출력 범위의 최대값
+ * @return 매핑된 float 값 (toLow와 toHigh 사이로 제한됨)
+ */
+float F10_mapFloat(float p_value, float p_fromLow, float p_fromHigh, float p_toLow, float p_toHigh) {
+    // 맵핑 로직: (입력값 - 입력최소) * (출력최대 - 출력최소) / (입력최대 - 입력최소) + 출력최소
+    float v_result = (p_value - p_fromLow) * (p_toHigh - p_toLow) / (p_fromHigh - p_fromLow) + p_toLow;
+
+    // 결과 값을 toLow와 toHigh 사이로 제한 (constrain 역할)
+    if (p_toLow < p_toHigh) {
+        return constrain(v_result, p_toLow, p_toHigh);
+    } else { // toLow가 toHigh보다 클 경우 (역방향 맵핑)
+        return constrain(v_result, p_toHigh, p_toLow);
+    }
+}
+
+// 필요하다면 double 버전도 구현할 수 있습니다.
+double F10_mapDouble(double p_value, double p_fromLow, double p_fromHigh, double p_toLow, double p_toHigh) {
+    double v_result = (p_value - p_fromLow) * (p_toHigh - p_toLow) / (p_fromHigh - p_fromLow) + p_toLow;
+    if (p_toLow < p_toHigh) {
+        return constrain(v_result, p_toLow, p_toHigh);
+    } else {
+        return constrain(v_result, p_toHigh, p_toLow);
+    }
+}
+
+
+/**
  * @brief 설정값을 LittleFS 파일에 JSON 형식으로 저장합니다.
  */
-void		   F10_saveJson_Settings() {
+void F10_saveJson_Settings() {
 	  // 로컬 변수 정의 (v_ 접두사)
 	  JsonDocument v_doc;  // JSON 문서 크기 (필요에 따라 조절)
 
 	  v_doc["minSpeed"]				= g_F10_fanMinSpeed;
 	  v_doc["maxSpeed"]				= g_F10_fanMaxSpeed;
 
-	  v_doc["minInterval"]			= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);  	  // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 저장
+	v_doc["minInterval"] = F10_mapFloat(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+
+	  // v_doc["minInterval"]			= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);  	  // 사인파 주파수를 웹의 minInterval 값으로 역변환하여 저장
 	  v_doc["maxInterval"]			= g_F10_randomInterval;
 	  v_doc["pirEnabled"]			= g_F10_pirSensorEnabled;
 	  v_doc["dhtEnabled"]			= g_F10_dhtSensorEnabled;
@@ -131,7 +164,8 @@ void F10_loadJson_Settings() {
 	g_F10_fanMaxSpeed		 = v_doc["maxSpeed"] | g_F10_fanMaxSpeed;
 
 	long v_loadedMinInterval = v_doc["minInterval"] | 500;					// 웹 기본값 500 사용
-	g_F10_sineFrequency		 = map((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
+	g_F10_sineFrequency = F10_mapFloat((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
+	// g_F10_sineFrequency		 = map((float)v_loadedMinInterval, 100.0, 5000.0, 100.0, 1.0) / 100000.0;
 
 	g_F10_randomInterval	 = v_doc["maxInterval"] | g_F10_randomInterval;
 	g_F10_pirSensorEnabled	 = v_doc["pirEnabled"] | g_F10_pirSensorEnabled;
@@ -180,7 +214,8 @@ void F10_setupWebHandlers() {
 		v_doc["minSpeed"]		= g_F10_fanMinSpeed;
 		v_doc["maxSpeed"]		= g_F10_fanMaxSpeed;
 		// 사인파 주파수를 웹의 minInterval 값으로 역변환하여 전송
-		v_doc["minInterval"]	= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+		v_doc["minInterval"] = F10_mapFloat(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
+		// v_doc["minInterval"]	= map(g_F10_sineFrequency * 100000.0, 1.0, 100.0, 5000.0, 100.0);
 		v_doc["maxInterval"]	= g_F10_randomInterval;
 		v_doc["pirEnabled"]		= g_F10_pirSensorEnabled;
 		v_doc["dhtEnabled"]		= g_F10_dhtSensorEnabled;
@@ -330,8 +365,19 @@ void F10_controlNaturalFan(unsigned long p_currentMillis) {
 	// 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
 	if (p_currentMillis - g_F10_previousRandomMillis >= g_F10_randomInterval) {
 		g_F10_previousRandomMillis = p_currentMillis;
+		// esp_random()은 0부터 2^32-1까지의 난수를 반환.
+        // G_F10_RANDOM_DEVIATION 범위 내의 (음수 포함) 랜덤 값을 생성
+        // 예: G_F10_RANDOM_DEVIATION이 20이면 -20부터 20까지 (총 41개)의 값을 생성
+		g_F10_randomOffset = (int)esp_random() % (2 * G_F10_RANDOM_DEVIATION + 1) - G_F10_RANDOM_DEVIATION;
+	}
+	
+    /*
+	// 2. 랜덤 오프셋 추가 (일정 간격마다 새로운 랜덤 값 갱신)
+	if (p_currentMillis - g_F10_previousRandomMillis >= g_F10_randomInterval) {
+		g_F10_previousRandomMillis = p_currentMillis;
 		g_F10_randomOffset		   = random(-G_F10_RANDOM_DEVIATION, G_F10_RANDOM_DEVIATION + 1);
 	}
+    */
 
 	// 최종 모터 속도 계산 (사인파 기반 속도 + 랜덤 오프셋)
 	g_F10_currentMotorSpeed = v_baseSpeed + g_F10_randomOffset;
@@ -367,7 +413,7 @@ void F10_init() {
 	digitalWrite(G_F10_MOTOR_INPUT2_PIN, LOW);
 
 	// 난수 생성을 위한 시드 설정 (연결되지 않은 아날로그 핀의 노이즈 활용)
-	randomSeed(analogRead(0));
+	// randomSeed(analogRead(0));
 
 	g_F10_dht.begin();	// DHT 센서 시작
 
