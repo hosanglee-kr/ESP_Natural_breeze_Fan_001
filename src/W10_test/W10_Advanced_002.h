@@ -16,7 +16,7 @@
 // G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
 OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
 
-
+#define G_W10_WM_CONFIG_FILE  "/config.json"
 
 // wifimanager는 블로킹 모드 또는 논블로킹 모드로 실행될 수 있습니다.
 // 논블로킹 모드를 사용하는 경우 delay() 없이 루프를 처리하는 방법을 알아야 합니다.
@@ -64,7 +64,7 @@ void W10_loadJson_config(){
     if (LittleFS.exists("/config.json")) {
       //file exists, reading and loading
       Serial.println("reading config file");
-      File v_configFile = LittleFS.open("/config.json", "r");
+      File v_configFile = LittleFS.open(G_W10_WM_CONFIG_FILE, "r");
       if (v_configFile) {
         Serial.println("opened config file");
         size_t size = v_configFile.size();
@@ -120,7 +120,7 @@ void W10_saveJson_config(){
     json["gateway"] = WiFi.gatewayIP().toString();
     json["subnet"]  = WiFi.subnetMask().toString();
 
-    File configFile = LittleFS.open("/config.json", "w");
+    File configFile = LittleFS.open(G_W10_WM_CONFIG_FILE, "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
