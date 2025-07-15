@@ -163,6 +163,19 @@ void W10_init() {
     WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
 	
 
+	// 사용자에게 'param' 메뉴에서 MAC 주소를 확인하도록 유도하는 방법이 더 현실적입니다.
+    // 읽기 전용 매개변수로 MAC 주소를 추가합니다.
+    char v_macAddressStr[18]; // MAC 주소 문자열 (XX:XX:XX:XX:XX:XX) + null 종료
+    String v_currentMac = WiFi.macAddress();
+    v_currentMac.toCharArray(v_macAddressStr, sizeof(v_macAddressStr));
+
+    // 이 파라미터는 "param" 메뉴에 표시됩니다.
+    // info 페이지에 직접 표시하는 것은 WiFiManager의 유연성 한계로 어렵습니다.
+    // 따라서 사용자에게 "매개변수" 메뉴를 확인하도록 안내해야 합니다.
+    WiFiManagerParameter v_mac_param("<p><strong>디바이스 MAC 주소:</strong></p>", "MAC Address", v_macAddressStr, sizeof(v_macAddressStr), "readonly");
+    g_W10_WifiManager.addParameter(&v_mac_param);
+
+	
 
 	////////////////////
     // 사용자 정의 입력 필드 추가
