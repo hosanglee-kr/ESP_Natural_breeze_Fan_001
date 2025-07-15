@@ -37,16 +37,106 @@ char static_gw[16] = "10.0.1.1";
 char static_sn[16] = "255.255.255.0";
 
 //flag for saving data
-bool shouldSaveConfig = false;
+bool g_W10_shouldSaveConfig = false;
 
 
 
-
+void W10_saveConfigCallback() ;
 void W10_startConfigPortal();
 void W10_resetSettings();
 
 String    W10_getParam(String name); // 사용자 정의 매개변수 값을 가져오는 함수
 void    W10_saveParamCallback(); // 매개변수 저장 시 호출되는 콜백 함수
+
+
+//callback notifying us of the need to save config
+void W10_saveConfigCallback() {
+  Serial.println("Should save config");
+  g_W10_shouldSaveConfig = true;
+}
+
+void W10_loadJson_config(){
+	//read configuration from FS json
+  Serial.println("mounting FS...");
+
+  if (LittleFS.begin()) {
+    Serial.println("mounted file system");
+    if (LittleFS.exists("/config.json")) {
+      //file exists, reading and loading
+      Serial.println("reading config file");
+      File v_configFile = LittleFS.open("/config.json", "r");
+      if (v_configFile) {
+        Serial.println("opened config file");
+        size_t size = v_configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+
+        v_configFile.readBytes(buf.get(), size);
+ 
+        JsonDocument json;
+        auto deserializeError = deserializeJson(json, buf.get());
+        serializeJson(json, Serial);
+        if ( ! deserializeError ) {
+          Serial.println("\nparsed json");
+
+          strcpy(mqtt_server, json["mqtt_server"]);
+          strcpy(mqtt_port, json["mqtt_port"]);
+          strcpy(api_token, json["api_token"]);
+
+          if (json["ip"]) {
+            Serial.println("setting custom ip from config");
+            strcpy(static_ip, json["ip"]);
+            strcpy(static_gw, json["gateway"]);
+            strcpy(static_sn, json["subnet"]);
+            Serial.println(static_ip);
+          } else {
+            Serial.println("no custom ip in config");
+          }
+        } else {
+          Serial.println("failed to load json config");
+        }
+      }
+    }
+   } else {
+      Serial.println("failed to mount FS");
+   }
+
+	Serial.println(static_ip);
+    Serial.println(api_token);
+    Serial.println(mqtt_server);
+}
+
+void W10_saveJson_config(){
+	//save the custom parameters to FS
+  if (g_W10_shouldSaveConfig) {
+    Serial.println("saving config");
+    JsonDocument json;
+
+    json["mqtt_server"] = mqtt_server;
+    json["mqtt_port"]   = mqtt_port;
+    json["api_token"]   = api_token;
+
+    json["ip"]      = WiFi.localIP().toString();
+    json["gateway"] = WiFi.gatewayIP().toString();
+    json["subnet"]  = WiFi.subnetMask().toString();
+
+    File configFile = LittleFS.open("/config.json", "w");
+    if (!configFile) {
+      Serial.println("failed to open config file for writing");
+    }
+
+    serializeJson(json, Serial);
+    serializeJson(json, configFile);
+
+    configFile.close();
+    //end save
+  }
+
+  Serial.println("local ip");
+  Serial.println(WiFi.localIP());
+  Serial.println(WiFi.gatewayIP());
+  Serial.println(WiFi.subnetMask());
+}
 
 
 void W10_init() {
@@ -66,6 +156,17 @@ void W10_init() {
         g_W10_WifiManager.setConfigPortalBlocking(false); // 논블로킹 모드로 설정 포털을 실행합니다.
     }
 
+	////////////////
+	// The extra parameters to be configured (can be either global or just in the setup)
+    // After connecting, parameter.getValue() will get you the configured value
+    // id/name placeholder/prompt default length
+    WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+    WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
+    WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
+	
+
+
+	////////////////////
     // 사용자 정의 입력 필드 추가
     int            customFieldLength = 40;
 
@@ -81,6 +182,7 @@ void W10_init() {
     g_W10_WifiManager.addParameter(&g_W10_custom_field); // WiFiManager에 사용자 정의 매개변수 추가
     g_W10_WifiManager.setSaveParamsCallback(W10_saveParamCallback); // 매개변수 저장 콜백 함수 설정
 
+	//////////////////////
     // 배열 또는 벡터를 통한 사용자 정의 메뉴
     //
     // 메뉴 토큰: "wifi", "wifinoscan", "info", "param", "close", "sep", "erase", "restart", "exit" (sep는 구분선)
@@ -93,6 +195,25 @@ void W10_init() {
     // 다크 테마 설정
     g_W10_WifiManager.setClass("invert");
 
+	///////
+	W10_loadJson_config();
+	//set config save notify callback
+    g_W10_WifiManager.setSaveConfigCallback(W10_saveConfigCallback);
+    //set static ip
+    IPAddress _ip, _gw, _sn;
+    _ip.fromString(static_ip);
+    _gw.fromString(static_gw);
+    _sn.fromString(static_sn);
+
+    g_W10_WifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
+
+    //add all your parameters here
+    g_W10_WifiManager.addParameter(&custom_mqtt_server);
+    g_W10_WifiManager.addParameter(&custom_mqtt_port);
+    g_W10_WifiManager.addParameter(&custom_api_token);
+
+
+	
     // 고정 IP 설정
     //  g_W10_WifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0)); // 고정 IP, 게이트웨이, 서브넷 마스크 설정 (주석 처리됨)
     //  g_W10_WifiManager.setShowStaticFields(true); // 고정 IP 필드를 항상 표시하도록 강제 (주석 처리됨)
@@ -124,6 +245,13 @@ void W10_init() {
         Serial.println("연결 성공 :)");
     }
 
+	//read updated parameters
+    strcpy(mqtt_server, custom_mqtt_server.getValue());
+    strcpy(mqtt_port, custom_mqtt_port.getValue());
+    strcpy(api_token, custom_api_token.getValue());
+	
+	W10_saveJson_config();
+	
 	// OneButton 콜백 함수 설정
     // 짧게 눌렀을 때 (클릭)
     g_W10_button.attachClick(W10_startConfigPortal);
