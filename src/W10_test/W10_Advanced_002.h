@@ -148,8 +148,6 @@ void W10_init() {
     // delay(3000); // 초기화 지연 (디버깅용)
     // Serial.println("\n Starting"); // 시작 메시지 출력 (디버깅용)
 
-    pinMode(G_W10_TRIGGER_PIN, INPUT); // 트리거 핀을 입력으로 설정
-
     // g_W10_WifiManager.resetSettings(); // 설정을 초기화합니다. (주석 처리됨: 필요 시 주석 해제)
 
     if (g_W10_wm_nonblocking) {
