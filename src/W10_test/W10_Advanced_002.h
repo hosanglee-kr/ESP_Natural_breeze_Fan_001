@@ -79,7 +79,7 @@ void W10_loadJson_config(){
 
   if (LittleFS.begin()) {
     Serial.println("mounted file system");
-    if (LittleFS.exists("/config.json")) {
+    if (LittleFS.exists(G_W10_WM_CONFIG_FILE)) {
       //file exists, reading and loading
       Serial.println("reading config file");
       File v_configFile = LittleFS.open(G_W10_WM_CONFIG_FILE, "r");
