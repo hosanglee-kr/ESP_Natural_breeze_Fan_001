@@ -24,7 +24,7 @@
 // G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
 OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
 
-#define G_W10_WM_CONFIG_FILE  "/config.json"
+#define G_W10_WM_CONFIG_FILE  "/w10_wm_config_001.json"
 
 // wifimanager는 블로킹 모드 또는 논블로킹 모드로 실행될 수 있습니다.
 // 논블로킹 모드를 사용하는 경우 delay() 없이 루프를 처리하는 방법을 알아야 합니다.
