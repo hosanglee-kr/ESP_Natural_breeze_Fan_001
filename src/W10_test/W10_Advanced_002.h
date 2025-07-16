@@ -112,6 +112,11 @@ void W10_loadJson_config(){
           } else {
             Serial.println("no custom ip in config");
           }
+			
+		  g_W10_wm_nonblocking = json["wm_nonblocking"] | false; // 기본값 false
+          Serial.print("논블로킹 모드 설정: ");
+          Serial.println(g_W10_wm_nonblocking ? "활성화" : "비활성화");
+      
         } else {
           Serial.println("failed to load json config");
         }
@@ -121,9 +126,12 @@ void W10_loadJson_config(){
       Serial.println("failed to mount FS");
    }
 
-	Serial.println(static_ip);
-    Serial.println(api_token);
-    Serial.println(mqtt_server);
+	Serial.println("--- 로드된 설정 ---");
+	Serial.println("Static IP: " + String(static_ip));
+    Serial.println("API Token: " + String(api_token));
+    Serial.println("MQTT Server: " + String(mqtt_server));
+    Serial.println("논블로킹 모드: " + String(g_W10_wm_nonblocking ? "활성화" : "비활성화"));
+    Serial.println("--------------------");
 }
 
 void W10_saveJson_config(){
@@ -140,6 +148,9 @@ void W10_saveJson_config(){
     json["gateway"] = WiFi.gatewayIP().toString();
     json["subnet"]  = WiFi.subnetMask().toString();
 
+	// 논블로킹 모드 설정 저장
+    json["wm_nonblocking"] = g_W10_wm_nonblocking;
+	  
     File configFile = LittleFS.open(G_W10_WM_CONFIG_FILE, "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
@@ -151,11 +162,11 @@ void W10_saveJson_config(){
     configFile.close();
     //end save
   }
-
-  Serial.println("local ip");
-  Serial.println(WiFi.localIP());
-  Serial.println(WiFi.gatewayIP());
-  Serial.println(WiFi.subnetMask());
+  Serial.println("--- 현재 네트워크 정보 ---");
+  Serial.println("로컬 IP: " + WiFi.localIP().toString());
+  Serial.println("게이트웨이 IP: " + WiFi.gatewayIP().toString());
+  Serial.println("서브넷 마스크: " + WiFi.subnetMask().toString());
+  Serial.println("-----------------------");
 }
 
 
@@ -170,9 +181,9 @@ void W10_init() {
 
     // g_W10_WifiManager.resetSettings(); // 설정을 초기화합니다. (주석 처리됨: 필요 시 주석 해제)
 
-    if (g_W10_wm_nonblocking) {
-        g_W10_WifiManager.setConfigPortalBlocking(false); // 논블로킹 모드로 설정 포털을 실행합니다.
-    }
+    // if (g_W10_wm_nonblocking) {
+    //     g_W10_WifiManager.setConfigPortalBlocking(false); // 논블로킹 모드로 설정 포털을 실행합니다.
+    // }
 
 	////////////////
 	//// WiFiManagerParameter(const char *id, const char *label, const char *defaultValue, int length, const char *custom, int labelPlacement);
@@ -182,14 +193,6 @@ void W10_init() {
     WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
     WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
     WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
-
-    // WiFiManagerParameter("customfieldid", "Custom Field Label", "Custom Field Value", customFieldLength,"placeholder=\"Custom Field Placeholder\" type=\"checkbox\""); // 사용자 정의 HTML 타입 (주석 처리됨)
-	WiFiManagerParameter v_wmp_nonblocking_2("isNonblocking", "is Nonblocking", g_W10__wmp_nonblocking_chr, 2, "placeholder=\"is Nonblocking Placeholder\" type=\"checkbox\""); // 사용자 정의 HTML 타입 (주석 처리됨)
-	g_W10_WifiManager.addParameter(&v_wmp_nonblocking_2);
-
-	
-    WiFiManagerParameter v_wmp_nonblocking("isNonblocking", "is Nonblocking", g_W10__wmp_nonblocking_chr, 2);
-	g_W10_WifiManager.addParameter(&v_wmp_nonblocking);
 
 
 	
@@ -238,6 +241,12 @@ void W10_init() {
 
 	///////
 	W10_loadJson_config();
+
+
+    // 로드된 논블로킹 모드 설정 적용
+    g_W10_WifiManager.setConfigPortalBlocking(!g_W10_wm_nonblocking); // false: 블로킹, true: 논블로킹
+
+
 	//set config save notify callback
     g_W10_WifiManager.setSaveConfigCallback(W10_saveConfigCallback);
     //set static ip
@@ -253,7 +262,15 @@ void W10_init() {
     g_W10_WifiManager.addParameter(&custom_mqtt_port);
     g_W10_WifiManager.addParameter(&custom_api_token);
 
+   // 논블로킹 모드 설정을 위한 체크박스 매개변수
+    // 현재 g_W10_wm_nonblocking 값에 따라 'checked' 속성을 동적으로 설정
+    char checkbox_checked[10];
+    if (g_W10_wm_nonblocking) strcpy(checkbox_checked, "checked"); else strcpy(checkbox_checked, "");
+    char checkbox_html[100];
+    sprintf(checkbox_html, "<br/><input type='checkbox' name='wm_nonblocking' value='true' %s> 논블로킹 모드 사용", checkbox_checked);
+    WiFiManagerParameter v_wmp_nonblocking_checkbox(checkbox_html);
 
+    g_W10_WifiManager.addParameter(&v_wmp_nonblocking_checkbox); // 논블로킹 체크박스 추가
 	
     // 고정 IP 설정
     //  g_W10_WifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0)); // 고정 IP, 게이트웨이, 서브넷 마스크 설정 (주석 처리됨)
@@ -291,7 +308,18 @@ void W10_init() {
     strcpy(mqtt_server, custom_mqtt_server.getValue());
     strcpy(mqtt_port, custom_mqtt_port.getValue());
     strcpy(api_token, custom_api_token.getValue());
-	
+
+
+	// 논블로킹 체크박스 값 반영
+    if (g_W10_WifiManager.server->hasArg("wm_nonblocking") && g_W10_WifiManager.server->arg("wm_nonblocking").equalsIgnoreCase("true")) {
+        g_W10_wm_nonblocking = true;
+    } else {
+        g_W10_wm_nonblocking = false;
+    }
+    // 설정 포털 블로킹 모드 재설정 (업데이트된 값으로)
+    g_W10_WifiManager.setConfigPortalBlocking(!g_W10_wm_nonblocking);
+
+
 	W10_saveJson_config();
 
 	#ifdef G_W10_ONDEMAND
