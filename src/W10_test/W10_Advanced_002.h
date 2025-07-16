@@ -57,6 +57,13 @@ String    W10_getParam(String name); // 사용자 정의 매개변수 값을 가
 void    W10_saveParamCallback(); // 매개변수 저장 시 호출되는 콜백 함수
 
 
+
+void W10_handlePreOtaUpdateCallback(){
+  Update.onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("CUSTOM Progress: %u%%\r", (progress / (total / 100)));
+  });
+}
+
 //callback notifying us of the need to save config
 void W10_saveConfigCallback() {
   Serial.println("Should save config");
@@ -250,6 +257,7 @@ void W10_init() {
     // g_W10_WifiManager.setScanDispPerc(true);        // RSSI를 그래프 아이콘이 아닌 백분율로 표시 (주석 처리됨)
 
     // g_W10_WifiManager.setBreakAfterConfig(true);    // Wi-Fi 저장 실패 시에도 항상 설정 포털 종료 (주석 처리됨)
+   wm.setPreOtaUpdateCallback(W10_handlePreOtaUpdateCallback);
 
     bool res;
     // res = g_W10_WifiManager.autoConnect(); // 칩 ID로부터 자동 생성된 AP 이름으로 자동 연결 (주석 처리됨)
