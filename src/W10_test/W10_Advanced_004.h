@@ -80,6 +80,10 @@ bool                 g_W10_shouldReconnectWifi = false; // Wi-Fi 재연결 필�
 unsigned long        g_W10_lastReconnectAttempt = 0; // 마지막 재연결 시도 시간
 const long           G_W10_RECONNECT_INTERVAL_MS = 5000; // 재연결 시도 간격 (5초)
 
+const char*          g_W10_apName     = "AutoConnectAP";
+const char*          g_W10_apPassword = NULL;
+
+
 // WS2812B LED 배열 정의
 CRGB g_W10_leds[G_W10_NUM_LEDS];
 
@@ -373,8 +377,8 @@ void W10_handleWiFiEvent(arduino_event_id_t event) {
 
 // --- 초기화 함수 ---
 void W10_init() {
-    // 1. 시리얼 및 LED 초기화
-    Serial.begin(115200);
+	
+    // 1. LED 초기화
     FastLED.addLeds<WS2812B, G_W10_LED_PIN, GRB>(g_W10_leds, G_W10_NUM_LEDS);
     FastLED.setBrightness(50); // LED 밝기 설정 (0-255)
     W10_setLedStatus(LED_STATUS_INIT); // 초기화 중 LED 상태 표시
@@ -439,7 +443,7 @@ void W10_init() {
     // 7. Wi-Fi 네트워크에 자동 연결 시도
     Serial.println("Attempting Wi-Fi autoConnect...");
     W10_setLedStatus(LED_STATUS_WIFI_CONNECTING); // 연결 시도 중 LED
-    bool v_connectResult = g_W10_wifiManager.autoConnect("AutoConnectAP", "password");
+    bool v_connectResult = g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword);
 
     if (!v_connectResult) {
         Serial.println("Wi-Fi 연결 실패 또는 타임아웃 발생");
@@ -500,7 +504,7 @@ void W10_startConfigPortal() {
     W10_setLedStatus(LED_STATUS_CONFIG_PORTAL); // 설정 포털 진입 LED
     g_W10_wifiManager.setConfigPortalTimeout(120);
 
-    if (!g_W10_wifiManager.startConfigPortal("OnDemandAP", "password")) {
+    if (!g_W10_wifiManager.startConfigPortal(g_W10_apName, g_W10_apPassword)) {
         Serial.println("설정 포털 연결 실패 또는 타임아웃 발생");
         delay(3000);
         // ESP.restart(); // 필요시 주석 해제
@@ -571,7 +575,7 @@ void W10_run() {
     if (g_W10_shouldReconnectWifi && (millis() - g_W10_lastReconnectAttempt >= G_W10_RECONNECT_INTERVAL_MS)) {
         Serial.println("Attempting Wi-Fi reconnection...");
         W10_setLedStatus(LED_STATUS_WIFI_CONNECTING); // 재연결 시도 중 LED
-        g_W10_wifiManager.autoConnect("AutoConnectAP", "password"); // 재연결 시도
+        g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword); // 재연결 시도
         g_W10_lastReconnectAttempt = millis(); // 재연결 시도 시간 업데이트
         if (WiFi.isConnected()) {
             g_W10_shouldReconnectWifi = false; // 연결 성공 시 플래그 해제
