@@ -172,6 +172,14 @@ void W10_saveJsonConfig(){
     Serial.println("-----------------------");
 }
 
+// --- OTA 업데이트 진행률 콜백 함수 ---
+// ArduinoOTA.onProgress에 등록되어 OTA 진행 상황을 시리얼 모니터에 출력
+void W10_handlePreOtaUpdateCallback(){
+    Update.onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("CUSTOM Progress: %u%%\r", (progress / (total / 100)));
+    });
+}
+
 // --- 초기화 함수 ---
 void W10_init() {
     // 1. Wi-Fi 모드 설정 및 초기 설정 로드
