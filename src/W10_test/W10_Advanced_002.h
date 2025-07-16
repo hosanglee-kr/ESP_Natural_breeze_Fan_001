@@ -257,7 +257,7 @@ void W10_init() {
     // g_W10_WifiManager.setScanDispPerc(true);        // RSSI를 그래프 아이콘이 아닌 백분율로 표시 (주석 처리됨)
 
     // g_W10_WifiManager.setBreakAfterConfig(true);    // Wi-Fi 저장 실패 시에도 항상 설정 포털 종료 (주석 처리됨)
-   wm.setPreOtaUpdateCallback(W10_handlePreOtaUpdateCallback);
+    g_W10_WifiManager.setPreOtaUpdateCallback(W10_handlePreOtaUpdateCallback);
 
     bool res;
     // res = g_W10_WifiManager.autoConnect(); // 칩 ID로부터 자동 생성된 AP 이름으로 자동 연결 (주석 처리됨)
