@@ -37,6 +37,8 @@ WiFiManager          g_W10_WifiManager;            // 전역 WiFiManager 인스�
 WiFiManagerParameter g_W10_custom_field;    // 전역 매개변수 (논블로킹 모드에서 매개변수 사용 시)
 
 
+char g_W10__wmp_nonblocking_chr[2] = "Y";
+
 //define your default values here, if there are different values in config.json, they are overwritten.
 //length should be max size + 1
 char mqtt_server[40];
@@ -181,8 +183,8 @@ void W10_init() {
     WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
     WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
 
-    char v_wmp_nonblocking_chr[2] = "Y";
-    WiFiManagerParameter v_wmp_nonblocking("isNonblocking", "is Nonblocking", v_wmp_nonblocking_chr, 2);
+    
+    WiFiManagerParameter v_wmp_nonblocking("isNonblocking", "is Nonblocking", g_W10__wmp_nonblocking_chr, 2);
 	g_W10_WifiManager.addParameter(&v_wmp_nonblocking);
 
 
