@@ -434,6 +434,8 @@ void W10_init() {
     _gw.fromString(g_W10_appConfig.staticGateway);
     _sn.fromString(g_W10_appConfig.staticSubnet);
     g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
+	g_W10_wifiManager.setShowStaticFields(true); // force show static ip fields
+    g_W10_wifiManager.setShowDnsFields(true);    // force show dns field always
 
 	// "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
     std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
