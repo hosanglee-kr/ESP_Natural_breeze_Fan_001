@@ -173,14 +173,20 @@ void W10_init() {
     }
 
 	////////////////
+	//// WiFiManagerParameter(const char *id, const char *label, const char *defaultValue, int length, const char *custom, int labelPlacement);
 	// The extra parameters to be configured (can be either global or just in the setup)
     // After connecting, parameter.getValue() will get you the configured value
     // id/name placeholder/prompt default length
     WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
     WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
     WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
-	
 
+    char v_wmp_nonblocking_chr[2] = "Y";
+    WiFiManagerParameter v_wmp_nonblocking("isNonblocking", "is Nonblocking", v_wmp_nonblocking_chr, 2);
+	g_W10_WifiManager.addParameter(&v_wmp_nonblocking);
+
+
+	
 	// 사용자에게 'param' 메뉴에서 MAC 주소를 확인하도록 유도하는 방법이 더 현실적입니다.
     // 읽기 전용 매개변수로 MAC 주소를 추가합니다.
     char v_macAddressStr[18]; // MAC 주소 문자열 (XX:XX:XX:XX:XX:XX) + null 종료
