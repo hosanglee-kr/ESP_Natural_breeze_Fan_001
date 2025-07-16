@@ -93,6 +93,27 @@ bool                 g_W10_mqttConnected = false;
     OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
 #endif
 
+// --- 함수 프로토타입 선언 ---
+void W10_clearLeds();
+void W10_setLedStatus(LedStatus status);
+void W10_updateLedStatus();
+
+void W10_saveConfigCallback();
+void W10_loadJsonConfig();
+void W10_saveJsonConfig();
+
+void W10_handleWiFiEvent(arduino_event_id_t event);
+
+void W10_init();
+void W10_startConfigPortal();
+void W10_resetSettings();
+void W10_startConfigPortal();
+void W10_resetSettings();
+
+String W10_getParam(String paramName);
+void W10_saveParamCallback();
+void W10_handlePreOtaUpdateCallback();
+
 // --- 함수 정의 ---
 
 // LED 제어 함수
