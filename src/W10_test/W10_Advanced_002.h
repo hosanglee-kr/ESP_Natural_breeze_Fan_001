@@ -183,7 +183,11 @@ void W10_init() {
     WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
     WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
 
-    
+    // WiFiManagerParameter("customfieldid", "Custom Field Label", "Custom Field Value", customFieldLength,"placeholder=\"Custom Field Placeholder\" type=\"checkbox\""); // 사용자 정의 HTML 타입 (주석 처리됨)
+	WiFiManagerParameter v_wmp_nonblocking_2("isNonblocking", "is Nonblocking", g_W10__wmp_nonblocking_chr, 2, "placeholder=\"is Nonblocking Placeholder\" type=\"checkbox\""); // 사용자 정의 HTML 타입 (주석 처리됨)
+	g_W10_WifiManager.addParameter(&v_wmp_nonblocking_2);
+
+	
     WiFiManagerParameter v_wmp_nonblocking("isNonblocking", "is Nonblocking", g_W10__wmp_nonblocking_chr, 2);
 	g_W10_WifiManager.addParameter(&v_wmp_nonblocking);
 
