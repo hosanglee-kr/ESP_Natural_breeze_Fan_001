@@ -11,6 +11,14 @@
 #include <LittleFS.h>
 #include <FS.h>
 
+#define G_W10_USEOTA
+// enable OTA
+#ifdef G_W10_USEOTA
+    #include <WiFiUdp.h>
+    #include <ArduinoOTA.h>
+#endif
+
+
 #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
 // OneButton 객체 생성
 // G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
@@ -268,6 +276,11 @@ void W10_init() {
     g_W10_button.attachClick(W10_startConfigPortal);
     // 길게 눌렀을 때 (롱 프레스 스타트) - 여기서는 롱 프레스가 시작되는 시점에 바로 처리
     g_W10_button.attachLongPressStart(W10_resetSettings);
+
+	#ifdef G_W10_USEOTA
+        ArduinoOTA.begin();
+    #endif
+
 }
 
 // 설정 포털을 시작하는 함수
@@ -310,4 +323,8 @@ void W10_run() {
 		g_W10_WifiManager.process();  // 논블로킹 모드에서 delay()를 피하고 다른 장시간 실행 코드 처리
 	}
     g_W10_button.tick(); // OneButton 라이브러리의 상태 업데이트 함수 호출
+
+	#ifdef G_W10_USEOTA
+      ArduinoOTA.handle();
+    #endif
 }
