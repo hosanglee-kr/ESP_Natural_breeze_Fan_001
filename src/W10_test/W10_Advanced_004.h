@@ -435,7 +435,9 @@ void W10_init() {
     _sn.fromString(g_W10_appConfig.staticSubnet);
     g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
 
-    std::vector<const char*> v_menu = {"wifi", "info", "param", "sep", "restart", "exit"};
+	// "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
+    std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
+    // std::vector<const char*> v_menu = {"wifi", "info", "param", "sep", "restart", "exit"};
     g_W10_wifiManager.setMenu(v_menu);
     g_W10_wifiManager.setClass("invert");
     g_W10_wifiManager.setConfigPortalTimeout(30);
