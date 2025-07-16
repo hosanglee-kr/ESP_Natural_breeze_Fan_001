@@ -37,8 +37,6 @@ WiFiManager          g_W10_WifiManager;            // 전역 WiFiManager 인스�
 WiFiManagerParameter g_W10_custom_field;    // 전역 매개변수 (논블로킹 모드에서 매개변수 사용 시)
 
 
-char g_W10__wmp_nonblocking_chr[2] = "Y";
-
 //define your default values here, if there are different values in config.json, they are overwritten.
 //length should be max size + 1
 char mqtt_server[40];
