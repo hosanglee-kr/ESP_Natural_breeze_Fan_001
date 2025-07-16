@@ -5,7 +5,6 @@
  * TRIGGEN_PIN 버튼 누름을 구현합니다. 한 번 누르면 온디맨드 설정 포털이 실행되고, 3초간 누르면 설정이 초기화됩니다.
  */
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include <OneButton.h>   // OneButton 라이브러리 추가
 
 #include <ArduinoJson.h>
 #include <LittleFS.h>
@@ -18,11 +17,15 @@
     #include <ArduinoOTA.h>
 #endif
 
+#define G_W10_ONDEMAND
+#ifdef G_W10_ONDEMAND
+    #include <OneButton.h>   // OneButton 라이브러리 추가
 
-#define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
-// OneButton 객체 생성
-// G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
-OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
+    #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
+    // OneButton 객체 생성
+    // G_W10_TRIGGER_PIN, true (풀업 저항 사용), true (내부 풀업 저항 활성화)
+    OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
+#endif
 
 #define G_W10_WM_CONFIG_FILE  "/w10_wm_config_001.json"
 
@@ -278,13 +281,15 @@ void W10_init() {
     strcpy(api_token, custom_api_token.getValue());
 	
 	W10_saveJson_config();
-	
-	// OneButton 콜백 함수 설정
-    // 짧게 눌렀을 때 (클릭)
-    g_W10_button.attachClick(W10_startConfigPortal);
-    // 길게 눌렀을 때 (롱 프레스 스타트) - 여기서는 롱 프레스가 시작되는 시점에 바로 처리
-    g_W10_button.attachLongPressStart(W10_resetSettings);
 
+	#ifdef G_W10_ONDEMAND
+	    // OneButton 콜백 함수 설정
+        // 짧게 눌렀을 때 (클릭)
+        g_W10_button.attachClick(W10_startConfigPortal);
+        // 길게 눌렀을 때 (롱 프레스 스타트) - 여기서는 롱 프레스가 시작되는 시점에 바로 처리
+        g_W10_button.attachLongPressStart(W10_resetSettings);
+    #endif
+	
 	#ifdef G_W10_USEOTA
         ArduinoOTA.begin();
     #endif
@@ -330,9 +335,12 @@ void W10_run() {
     if (g_W10_wm_nonblocking) {
 		g_W10_WifiManager.process();  // 논블로킹 모드에서 delay()를 피하고 다른 장시간 실행 코드 처리
 	}
-    g_W10_button.tick(); // OneButton 라이브러리의 상태 업데이트 함수 호출
-
+	
+	#ifdef G_W10_ONDEMAND
+        g_W10_button.tick(); // OneButton 라이브러리의 상태 업데이트 함수 호출
+    #endif
+	
 	#ifdef G_W10_USEOTA
-      ArduinoOTA.handle();
+        ArduinoOTA.handle();
     #endif
 }
