@@ -1,7 +1,9 @@
+#pragma once
+
 // W10_Advanced_004.h
 
-#ifndef W10_ADVANCED_003_H
-#define W10_ADVANCED_003_H
+#ifndef W10_ADVANCED_004_H
+#define W10_ADVANCED_004_H
 
 
 // --- 라이브러리 인클루드 ---
@@ -53,7 +55,8 @@ struct AppConfig {
     char mqttServer[40];
     char mqttPort[6];
     char apiToken[34];
-    
+
+    bool use_custom_ap_ip;
     char ap_Ip[16];
     char ap_Gateway[16];
     char ap_Subnet[16];
@@ -104,8 +107,6 @@ void W10_saveJsonConfig();
 void W10_handleWiFiEvent(arduino_event_id_t event);
 
 void W10_init();
-void W10_startConfigPortal();
-void W10_resetSettings();
 void W10_startConfigPortal();
 void W10_resetSettings();
 
@@ -202,6 +203,7 @@ void W10_updateLedStatus() {
                             g_W10_leds[0] = CRGB::Purple;
                         } else if (g_W10_currentLedStatus == LED_STATUS_WIFI_DISCONNECTED) {
                             g_W10_leds[0] = CRGB::Red;
+						}
                     } else {
                         g_W10_leds[0] = CRGB::Black; // LED 끄기
                     }
@@ -262,7 +264,8 @@ void W10_loadJsonConfig(){
                     strcpy(g_W10_appConfig.mqttPort     , v_jsonDoc["mqtt_port"]    | "8080");
                     strcpy(g_W10_appConfig.apiToken     , v_jsonDoc["api_token"]    | "YOUR_APITOKEN");
 
-                    Serial.println("setting AP ip from config");
+                    Serial.println("setting AP ip from config");	
+					g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | false;
                     strcpy(g_W10_appConfig.ap_Ip        , v_jsonDoc["ap_ip"]        | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Subnet    , v_jsonDoc["ap_subnet"]    | "255.255.255.0");
@@ -319,7 +322,8 @@ void W10_saveJsonConfig(){
         v_jsonDoc["mqtt_port"]      = g_W10_appConfig.mqttPort;
         v_jsonDoc["api_token"]      = g_W10_appConfig.apiToken;
 
-
+        
+        v_jsonDoc["use_custom_ap_ip"]          = g_W10_appConfig.use_custom_ap_ip;
         v_jsonDoc["ap_ip"]          = WiFi.softAPIP().toString();
         v_jsonDoc["ap_gateway"]     = WiFi.softAPIP().toString();           // AP 자신의 IP
         v_jsonDoc["ap_subnet"]      = WiFi.softAPSubnetMask().toString();
@@ -456,14 +460,15 @@ void W10_init() {
     g_W10_wifiManager.setShowDnsFields(true);    // force show dns field always
 
 	// set AP static ip
-
-    // 6. WiFiManager의 고급 동작 설정
-    IPAddress _ap_ip, _ap_gw, _ap_sn;
-    _ap_ip.fromString(g_W10_appConfig.ap_Ip);
-    _ap_gw.fromString(g_W10_appConfig.ap_Gateway);
-    _ap_sn.fromString(g_W10_appConfig.ap_Subnet);
+    if(g_W10_appConfig.use_custom_ap_ip){
+        // 6. WiFiManager의 고급 동작 설정
+        IPAddress _ap_ip, _ap_gw, _ap_sn;
+        _ap_ip.fromString(g_W10_appConfig.ap_Ip);
+        _ap_gw.fromString(g_W10_appConfig.ap_Gateway);
+        _ap_sn.fromString(g_W10_appConfig.ap_Subnet);
 	
-    g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
+        g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
+	}
   
 	// "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
     std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
@@ -633,4 +638,4 @@ void W10_run() {
     }
 }
 
-#endif // W10_ADVANCED_003_H
+#endif // W10_ADVANCED_004_H
