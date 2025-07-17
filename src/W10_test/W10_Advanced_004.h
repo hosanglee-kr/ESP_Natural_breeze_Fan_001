@@ -323,7 +323,7 @@ void W10_saveJsonConfig(){
         v_jsonDoc["api_token"]      = g_W10_appConfig.apiToken;
 
         
-        v_jsonDoc["use_custom_ap_ip"]          = g_W10_appConfig.g_W10_appConfig.use_custom_ap_ip;
+        v_jsonDoc["use_custom_ap_ip"]          = g_W10_appConfig.use_custom_ap_ip;
         v_jsonDoc["ap_ip"]          = WiFi.softAPIP().toString();
         v_jsonDoc["ap_gateway"]     = WiFi.softAPIP().toString();           // AP 자신의 IP
         v_jsonDoc["ap_subnet"]      = WiFi.softAPSubnetMask().toString();
