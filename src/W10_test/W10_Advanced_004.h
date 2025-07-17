@@ -316,7 +316,7 @@ void W10_saveJsonConfig(){
         v_jsonDoc["ip"]      = WiFi.localIP().toString();
         v_jsonDoc["gateway"] = WiFi.gatewayIP().toString();
         v_jsonDoc["subnet"]  = WiFi.subnetMask().toString();
-        v_jsonDoc["dns"]  = WiFi.dns().toString();
+        v_jsonDoc["dns"]  = WiFi.dnsIP().toString();
 
         v_jsonDoc["wm_nonblocking"] = g_W10_appConfig.isWmNonBlocking;
         
