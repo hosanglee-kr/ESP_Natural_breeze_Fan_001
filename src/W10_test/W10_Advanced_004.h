@@ -200,6 +200,7 @@ void W10_updateLedStatus() {
                             g_W10_leds[0] = CRGB::Purple;
                         } else if (g_W10_currentLedStatus == LED_STATUS_WIFI_DISCONNECTED) {
                             g_W10_leds[0] = CRGB::Red;
+						}
                     } else {
                         g_W10_leds[0] = CRGB::Black; // LED 끄기
                     }
