@@ -12,6 +12,7 @@
 #include <LittleFS.h>         // ESP32/ESP8266의 플래시 파일 시스템 (LittleFS) 사용을 위한 라이브러리
 #include <FS.h>               // 파일 시스템 기본 기능을 위한 라이브러리 (LittleFS에 포함됨)
 #include <FastLED.h>          // WS2812B LED 제어 라이브러리
+#include <vector>             // std::vector 사용을 위한 헤더 추가
 
 // --- 매크로 정의 ---
 #define G_W10_USEOTA          // OTA 업데이트 기능 활성화
@@ -32,26 +33,23 @@
 #define G_W10_LED_PIN         27    // WS2812B 데이터 핀 번호
 #define G_W10_NUM_LEDS        1     // 사용할 WS2812B LED 개수 (단일 LED 사용)
 
-
-
 // --- WS2812B LED 상태 정의 ---
 enum LedStatus {
-    LED_STATUS_OFF,                        // 꺼짐 (Black)
-    LED_STATUS_INIT,                       // 초기화 중 (파란색 깜빡임, 1초 간격)
-    LED_STATUS_WIFI_CONNECTING,            // Wi-Fi 연결 시도 중 (파란색 깜빡임, 1초 간격)
-    LED_STATUS_WIFI_CONNECTED,             // Wi-Fi 연결 성공 (녹색 고정)
-    LED_STATUS_WIFI_DISCONNECTED,          // Wi-Fi 연결 끊김 (빨간색 빠르게 깜빡임, 0.2초 간격)    
-    LED_STATUS_MQTT_CONNECTED,             // MQTT 연결 성공 (노란색 고정)
-    LED_STATUS_MQTT_DISCONNECTED,          // MQTT 연결 실패 (주황색 깜빡임, 0.5초 간격)
-    LED_STATUS_OTA_START,                  // OTA 시작 (흰색 고정)
-    LED_STATUS_OTA_PROGRESS,               // OTA 진행 중 (흰색 깜빡임, 0.2초 간격)
-    LED_STATUS_OTA_END,                    // OTA 완료 (녹색 고정)
-    LED_STATUS_OTA_ERROR,                  // OTA 오류 (빨간색 고정)
-    LED_STATUS_CONFIG_PORTAL               // 설정 포털 활성화 (보라색 깜빡임, 0.3초 간격)
+    LED_STATUS_OFF,                 // 꺼짐 (Black)
+    LED_STATUS_INIT,                // 초기화 중 (파란색 깜빡임, 1초 간격)
+    LED_STATUS_WIFI_CONNECTING,     // Wi-Fi 연결 시도 중 (파란색 깜빡임, 1초 간격)
+    LED_STATUS_WIFI_CONNECTED,      // Wi-Fi 연결 성공 (녹색 고정)
+    LED_STATUS_WIFI_DISCONNECTED,   // Wi-Fi 연결 끊김 (빨간색 빠르게 깜빡임, 0.2초 간격)   
+    LED_STATUS_MQTT_CONNECTED,      // MQTT 연결 성공 (노란색 고정)
+    LED_STATUS_MQTT_DISCONNECTED,   // MQTT 연결 실패 (주황색 깜빡임, 0.5초 간격)
+    LED_STATUS_OTA_START,           // OTA 시작 (흰색 고정)
+    LED_STATUS_OTA_PROGRESS,        // OTA 진행 중 (흰색 깜빡임, 0.2초 간격)
+    LED_STATUS_OTA_END,             // OTA 완료 (녹색 고정)
+    LED_STATUS_OTA_ERROR,           // OTA 오류 (빨간색 고정)
+    LED_STATUS_CONFIG_PORTAL        // 설정 포털 활성화 (보라색 깜빡임, 0.3초 간격)
 };
 
 // --- 설정 구조체 정의 ---
-
 struct WifiNetworkConfig {
     char ssid[32];
     char password[64];
@@ -72,34 +70,31 @@ struct AppConfig {
     char ap_Gateway[16];
     char ap_Subnet[16];
     
-
     // 여러 Wi-Fi 네트워크 설정을 저장하기 위한 벡터
-    // std::vector를 사용하려면 <vector> 헤더 포함 필요
     std::vector<WifiNetworkConfig> wifiNetworks; 
 
     bool isWmNonBlocking;
 };
 
 // --- 전역 변수 정의 ---
-AppConfig            g_W10_appConfig;                           // 애플리케이션 설정 구조체 인스턴스
-bool                 g_W10_isWmNonBlocking          = false;    // 논블로킹 모드 사용 여부 (AppConfig와 중복되지만, WiFiManager 호환성을 위해 유지)
-WiFiManager          g_W10_wifiManager;                         // 전역 WiFiManager 인스턴스
-WiFiManagerParameter g_W10_customField;                         // 전역 매개변수 (논블로킹 모드에서 매개변수 사용 시)
-bool                 g_W10_shouldSaveConfig         = false;    // 데이터 저장 필요 여부를 나타내는 플래그
-bool                 g_W10_shouldReconnectWifi      = false;    // Wi-Fi 재연결 필요 플래그
-unsigned long        g_W10_lastReconnectAttempt     = 0;        // 마지막 재연결 시도 시간
-const long           G_W10_RECONNECT_INTERVAL_MS    = 5000;     // 재연결 시도 간격 (5초)
+AppConfig             g_W10_appConfig;                                // 애플리케이션 설정 구조체 인스턴스
+bool                  g_W10_isWmNonBlocking     = false;              // 논블로킹 모드 사용 여부 (AppConfig와 중복되지만, WiFiManager 호환성을 위해 유지)
+WiFiManager           g_W10_wifiManager;                              // 전역 WiFiManager 인스턴스
+WiFiManagerParameter  g_W10_customField;                              // 전역 매개변수 (논블로킹 모드에서 매개변수 사용 시)
+bool                  g_W10_shouldSaveConfig    = false;              // 데이터 저장 필요 여부를 나타내는 플래그
+bool                  g_W10_shouldReconnectWifi = false;              // Wi-Fi 재연결 필요 플래그
+unsigned long         g_W10_lastReconnectAttempt= 0;                  // 마지막 재연결 시도 시간
+const long            G_W10_RECONNECT_INTERVAL_MS = 5000;             // 재연결 시도 간격 (5초)
 
-const char*          g_W10_apName                   = "AutoConnectAP";
-const char*          g_W10_apPassword               = NULL;
+const char* g_W10_apName              = "AutoConnectAP";
+const char* g_W10_apPassword          = NULL;
 
+CRGB                  g_W10_leds[G_W10_NUM_LEDS];                     // WS2812B LED 배열 정의
 
-CRGB                 g_W10_leds[G_W10_NUM_LEDS];                        // WS2812B LED 배열 정의
+LedStatus             g_W10_currentLedStatus    = LED_STATUS_OFF;   // 현재 LED 상태
+unsigned long         g_W10_lastLedUpdateTime   = 0;                  // 마지막 LED 업데이트 시간
 
-LedStatus            g_W10_currentLedStatus         = LED_STATUS_OFF;   // 현재 LED 상태
-unsigned long        g_W10_lastLedUpdateTime        = 0;                // 마지막 LED 업데이트 시간
-
-bool                 g_W10_mqttConnected            = false;            // 임시 MQTT 연결 상태 (실제 MQTT 클라이언트 통합 시 제거 또는 연동)
+bool                  g_W10_mqttConnected       = false;              // 임시 MQTT 연결 상태 (실제 MQTT 클라이언트 통합 시 제거 또는 연동)
 
 #ifdef G_W10_ONDEMAND
     OneButton g_W10_button(G_W10_TRIGGER_PIN, true, true);
@@ -179,7 +174,7 @@ void W10_setLedStatus(LedStatus status) {
 void W10_updateLedStatus() {
     unsigned long v_currentTime = millis();
     switch (g_W10_currentLedStatus) {
-        case LED_STATUS_INIT:               // 파란색 깜빡임 (초기화)
+        case LED_STATUS_INIT:           // 파란색 깜빡임 (초기화)
         case LED_STATUS_WIFI_CONNECTING:    // 파란색 천천히 깜빡임 (Wi-Fi 연결 시도)
         case LED_STATUS_MQTT_DISCONNECTED:  // 주황색 깜빡임 (MQTT 연결 실패)
         case LED_STATUS_OTA_PROGRESS:       // 흰색 깜빡임 (OTA 진행 중)
@@ -213,7 +208,7 @@ void W10_updateLedStatus() {
                             g_W10_leds[0] = CRGB::Purple;
                         } else if (g_W10_currentLedStatus == LED_STATUS_WIFI_DISCONNECTED) {
                             g_W10_leds[0] = CRGB::Red;
-						}
+                        }
                     } else {
                         g_W10_leds[0] = CRGB::Black; // LED 끄기
                     }
@@ -261,7 +256,7 @@ void W10_loadJsonConfig(){
                 v_configFile.readBytes(v_buffer.get(), v_fileSize);
                 v_buffer.get()[v_fileSize] = '\0';
                 v_configFile.close();
- 
+    
                 JsonDocument v_jsonDoc;
                 auto v_deserializeError = deserializeJson(v_jsonDoc, v_buffer.get());
                 serializeJson(v_jsonDoc, Serial);
@@ -274,25 +269,27 @@ void W10_loadJsonConfig(){
                     strcpy(g_W10_appConfig.mqttPort     , v_jsonDoc["mqtt_port"]    | "8080");
                     strcpy(g_W10_appConfig.apiToken     , v_jsonDoc["api_token"]    | "YOUR_APITOKEN");
 
-                    Serial.println("setting AP ip from config");	
-					g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | false;
-                    strcpy(g_W10_appConfig.ap_Ip        , v_jsonDoc["ap_ip"]        | "10,0,1,1");
-                    strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10,0,1,1");
+                    Serial.println("setting AP ip from config");    
+                    g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | false;
+                    strcpy(g_W10_appConfig.ap_Ip        , v_jsonDoc["ap_ip"]        | "10.0.1.1");
+                    strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10.0.1.1");
                     strcpy(g_W10_appConfig.ap_Subnet    , v_jsonDoc["ap_subnet"]    | "255.255.255.0");
                     
-
-                    if (v_jsonDoc["ip"].as<String>().length() > 0) {
-                        Serial.println("setting custom ip from config");
-                        strcpy(g_W10_appConfig.staticIp         , v_jsonDoc["ip"]       | "");
-                        strcpy(g_W10_appConfig.staticGateway    , v_jsonDoc["gateway"]  | "");
-                        strcpy(g_W10_appConfig.staticSubnet     , v_jsonDoc["subnet"]   | "");
-						strcpy(g_W10_appConfig.staticDns        , v_jsonDoc["dns"]      | "");
-						
-                        Serial.println(g_W10_appConfig.staticIp);
-                    } else {
-                        Serial.println("no custom ip in config");
+                    // "wifi_networks" 배열 로드
+                    JsonArray wifiNetworksArray = v_jsonDoc["wifi_networks"].as<JsonArray>();
+                    g_W10_appConfig.wifiNetworks.clear(); // 기존 데이터 초기화
+                    for (JsonObject obj : wifiNetworksArray) {
+                        WifiNetworkConfig netConfig;
+                        strlcpy(netConfig.ssid, obj["ssid"] | "", sizeof(netConfig.ssid));
+                        strlcpy(netConfig.password, obj["password"] | "", sizeof(netConfig.password));
+                        netConfig.useDhcp = obj["use_dhcp"] | true;
+                        strlcpy(netConfig.ip, obj["ip"] | "", sizeof(netConfig.ip));
+                        strlcpy(netConfig.gateway, obj["gateway"] | "", sizeof(netConfig.gateway));
+                        strlcpy(netConfig.subnet, obj["subnet"] | "", sizeof(netConfig.subnet));
+                        strlcpy(netConfig.dns, obj["dns"] | "", sizeof(netConfig.dns));
+                        g_W10_appConfig.wifiNetworks.push_back(netConfig);
                     }
-                    
+                                      
                     g_W10_appConfig.isWmNonBlocking = v_jsonDoc["wm_nonblocking"] | false;
                     g_W10_isWmNonBlocking           = g_W10_appConfig.isWmNonBlocking; // WiFiManager 호환성
 
@@ -314,10 +311,20 @@ void W10_loadJsonConfig(){
     }
 
     Serial.println("--- 로드된 설정 요약 ---");
-    Serial.println("Static IP: "    + String(g_W10_appConfig.staticIp));
-    Serial.println("API Token: "    + String(g_W10_appConfig.apiToken));
-    Serial.println("MQTT Server: "  + String(g_W10_appConfig.mqttServer));
+    Serial.println("API Token: "   + String(g_W10_appConfig.apiToken));
+    Serial.println("MQTT Server: " + String(g_W10_appConfig.mqttServer));
     Serial.println("논블로킹 모드: "    + String(g_W10_appConfig.isWmNonBlocking ? "활성화" : "비활성화"));
+    Serial.println("--- Wi-Fi 네트워크 설정 ---");
+    for (const auto& net : g_W10_appConfig.wifiNetworks) {
+        Serial.print("  SSID: "); Serial.println(net.ssid);
+        Serial.print("  DHCP 사용: "); Serial.println(net.useDhcp ? "예" : "아니오");
+        if (!net.useDhcp) {
+            Serial.print("  IP: "); Serial.println(net.ip);
+            Serial.print("  Gateway: "); Serial.println(net.gateway);
+            Serial.print("  Subnet: "); Serial.println(net.subnet);
+            Serial.print("  DNS: "); Serial.println(net.dns);
+        }
+    }
     Serial.println("--------------------");
 }
 
@@ -332,16 +339,23 @@ void W10_saveJsonConfig(){
         v_jsonDoc["mqtt_port"]      = g_W10_appConfig.mqttPort;
         v_jsonDoc["api_token"]      = g_W10_appConfig.apiToken;
 
-        
         v_jsonDoc["use_custom_ap_ip"] = g_W10_appConfig.use_custom_ap_ip;
-        v_jsonDoc["ap_ip"]          = WiFi.softAPIP().toString();
-        v_jsonDoc["ap_gateway"]     = WiFi.softAPIP().toString();           // AP 자신의 IP
-        v_jsonDoc["ap_subnet"]      = WiFi.softAPSubnetMask().toString();
-                
-        v_jsonDoc["ip"]             = WiFi.localIP().toString();
-        v_jsonDoc["gateway"]        = WiFi.gatewayIP().toString();
-        v_jsonDoc["subnet"]         = WiFi.subnetMask().toString();
-        v_jsonDoc["dns"]            = WiFi.dnsIP().toString();
+        v_jsonDoc["ap_ip"]          = g_W10_appConfig.ap_Ip; // 저장된 AP IP 사용
+        v_jsonDoc["ap_gateway"]     = g_W10_appConfig.ap_Gateway; // 저장된 AP Gateway 사용
+        v_jsonDoc["ap_subnet"]      = g_W10_appConfig.ap_Subnet;
+
+        // "wifi_networks" 배열 저장
+        JsonArray wifiNetworksArray = v_jsonDoc.createNestedArray("wifi_networks");
+        for (const auto& net : g_W10_appConfig.wifiNetworks) {
+            JsonObject obj = wifiNetworksArray.createNestedObject();
+            obj["ssid"] = net.ssid;
+            obj["password"] = net.password;
+            obj["use_dhcp"] = net.useDhcp;
+            obj["ip"] = net.ip;
+            obj["gateway"] = net.gateway;
+            obj["subnet"] = net.subnet;
+            obj["dns"] = net.dns;
+        }
 
         v_jsonDoc["wm_nonblocking"] = g_W10_appConfig.isWmNonBlocking;
         
@@ -360,9 +374,9 @@ void W10_saveJsonConfig(){
         g_W10_shouldSaveConfig = false;
     }
     Serial.println("--- 현재 네트워크 정보 ---");
-    Serial.println("로컬 IP: "         + WiFi.localIP().toString());
-    Serial.println("게이트웨이 IP: "    + WiFi.gatewayIP().toString());
-    Serial.println("서브넷 마스크: "    + WiFi.subnetMask().toString());
+    Serial.println("로컬 IP: "           + WiFi.localIP().toString());
+    Serial.println("게이트웨이 IP: "     + WiFi.gatewayIP().toString());
+    Serial.println("서브넷 마스크: "     + WiFi.subnetMask().toString());
     Serial.println("-----------------------");
 }
 
@@ -407,7 +421,6 @@ void W10_handleWiFiEvent(arduino_event_id_t event) {
 
 // --- 초기화 함수 ---
 void W10_init() {
-	
     // 1. LED 초기화
     FastLED.addLeds<WS2812B, G_W10_LED_PIN, GRB>(g_W10_leds, G_W10_NUM_LEDS);
     FastLED.setBrightness(50); // LED 밝기 설정 (0-255)
@@ -418,7 +431,6 @@ void W10_init() {
     WiFi.onEvent(W10_handleWiFiEvent); // Wi-Fi 이벤트 핸들러 등록
 
     W10_loadJsonConfig(); // 저장된 JSON 설정 파일 로드
-
 
     g_W10_wifiManager.setConfigPortalBlocking(!g_W10_appConfig.isWmNonBlocking);
     g_W10_isWmNonBlocking = g_W10_appConfig.isWmNonBlocking; // WiFiManager 호환성 유지
@@ -461,30 +473,23 @@ void W10_init() {
     g_W10_wifiManager.addParameter(&g_W10_customField);
 
     // 6. WiFiManager의 고급 동작 설정
-    IPAddress _ip, _gw, _sn, _dns;
-    _ip.fromString(g_W10_appConfig.staticIp);
-    _gw.fromString(g_W10_appConfig.staticGateway);
-    _sn.fromString(g_W10_appConfig.staticSubnet);
-	_dns.fromString(g_W10_appConfig.staticDns);
-	
-    g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn, _dns);
-	g_W10_wifiManager.setShowStaticFields(true); // force show static ip fields
-    g_W10_wifiManager.setShowDnsFields(true);    // force show dns field always
+    // 정적 IP 설정 관련 부분 제거 (JSON에서 여러 네트워크를 관리하므로)
+    // g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn, _dns);
+    // g_W10_wifiManager.setShowStaticFields(true); 
+    // g_W10_wifiManager.setShowDnsFields(true);  
 
-	// set AP static ip
+    // AP static ip 설정
     if(g_W10_appConfig.use_custom_ap_ip){
-        // 6. WiFiManager의 고급 동작 설정
         IPAddress _ap_ip, _ap_gw, _ap_sn;
         _ap_ip.fromString(g_W10_appConfig.ap_Ip);
         _ap_gw.fromString(g_W10_appConfig.ap_Gateway);
         _ap_sn.fromString(g_W10_appConfig.ap_Subnet);
-	
+    
         g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
-	}
+    }
   
-	// "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
+    // "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
     std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
-    // std::vector<const char*> v_menu = {"wifi", "info", "param", "sep", "restart", "exit"};
     g_W10_wifiManager.setMenu(v_menu);
     g_W10_wifiManager.setClass("invert");
     g_W10_wifiManager.setConfigPortalTimeout(30);
@@ -624,6 +629,9 @@ void W10_run() {
     if (g_W10_shouldReconnectWifi && (millis() - g_W10_lastReconnectAttempt >= G_W10_RECONNECT_INTERVAL_MS)) {
         Serial.println("Attempting Wi-Fi reconnection...");
         W10_setLedStatus(LED_STATUS_WIFI_CONNECTING); // 재연결 시도 중 LED
+        // WiFiManager가 이전에 성공적으로 연결했던 네트워크로 재연결을 시도합니다.
+        // 여러 네트워크 중 특정 네트워크로 연결을 시도하려면 WiFiManager의 setSTAStaticIPConfig 또는 connectWifi 함수를 사용해야 합니다.
+        // 현재는 autoConnect를 통해 마지막에 성공한 AP로 연결을 시도합니다.
         g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword); // 재연결 시도
         g_W10_lastReconnectAttempt = millis(); // 재연결 시도 시간 업데이트
         if (WiFi.isConnected()) {
