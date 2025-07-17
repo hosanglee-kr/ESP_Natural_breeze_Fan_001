@@ -67,6 +67,7 @@ struct AppConfig {
     char staticIp[16];
     char staticGateway[16];
     char staticSubnet[16];
+    char staticDns[16];
     bool isWmNonBlocking;
 };
 
@@ -267,6 +268,8 @@ void W10_loadJsonConfig(){
                         strcpy(g_W10_appConfig.staticIp, v_jsonDoc["ip"] | "");
                         strcpy(g_W10_appConfig.staticGateway, v_jsonDoc["gateway"] | "");
                         strcpy(g_W10_appConfig.staticSubnet, v_jsonDoc["subnet"] | "");
+						strcpy(g_W10_appConfig.staticDns, v_jsonDoc["dns"] | "");
+						
                         Serial.println(g_W10_appConfig.staticIp);
                     } else {
                         Serial.println("no custom ip in config");
@@ -313,6 +316,7 @@ void W10_saveJsonConfig(){
         v_jsonDoc["ip"]      = WiFi.localIP().toString();
         v_jsonDoc["gateway"] = WiFi.gatewayIP().toString();
         v_jsonDoc["subnet"]  = WiFi.subnetMask().toString();
+        v_jsonDoc["dns"]  = WiFi.dns().toString();
 
         v_jsonDoc["wm_nonblocking"] = g_W10_appConfig.isWmNonBlocking;
         
@@ -429,11 +433,13 @@ void W10_init() {
     g_W10_wifiManager.addParameter(&g_W10_customField);
 
     // 6. WiFiManager의 고급 동작 설정
-    IPAddress _ip, _gw, _sn;
+    IPAddress _ip, _gw, _sn, _dns;
     _ip.fromString(g_W10_appConfig.staticIp);
     _gw.fromString(g_W10_appConfig.staticGateway);
     _sn.fromString(g_W10_appConfig.staticSubnet);
-    g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
+	_dns.fromString(g_W10_appConfig.staticDns);
+	
+    g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn, _dns);
 	g_W10_wifiManager.setShowStaticFields(true); // force show static ip fields
     g_W10_wifiManager.setShowDnsFields(true);    // force show dns field always
 
