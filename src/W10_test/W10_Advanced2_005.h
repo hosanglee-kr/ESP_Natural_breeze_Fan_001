@@ -51,6 +51,17 @@ enum LedStatus {
 };
 
 // --- 설정 구조체 정의 ---
+
+struct WifiNetworkConfig {
+    char ssid[32];
+    char password[64];
+    bool useDhcp;
+    char ip[16];
+    char gateway[16];
+    char subnet[16];
+    char dns[16];
+};
+
 struct AppConfig {
     char mqttServer[40];
     char mqttPort[6];
@@ -62,10 +73,9 @@ struct AppConfig {
     char ap_Subnet[16];
     
 
-    char staticIp[16];
-    char staticGateway[16];
-    char staticSubnet[16];
-    char staticDns[16];
+    // 여러 Wi-Fi 네트워크 설정을 저장하기 위한 벡터
+    // std::vector를 사용하려면 <vector> 헤더 포함 필요
+    std::vector<WifiNetworkConfig> wifiNetworks; 
 
     bool isWmNonBlocking;
 };
