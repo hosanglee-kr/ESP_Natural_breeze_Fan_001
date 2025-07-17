@@ -106,8 +106,6 @@ void W10_handleWiFiEvent(arduino_event_id_t event);
 void W10_init();
 void W10_startConfigPortal();
 void W10_resetSettings();
-void W10_startConfigPortal();
-void W10_resetSettings();
 
 String W10_getParam(String paramName);
 void W10_saveParamCallback();
