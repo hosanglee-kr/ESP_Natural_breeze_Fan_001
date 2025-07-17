@@ -323,7 +323,7 @@ void W10_saveJsonConfig(){
         v_jsonDoc["api_token"]      = g_W10_appConfig.apiToken;
 
         
-        v_jsonDoc["use_custom_ap_ip"]          = g_W10_appConfig.use_custom_ap_ip;
+        v_jsonDoc["use_custom_ap_ip"] = g_W10_appConfig.use_custom_ap_ip;
         v_jsonDoc["ap_ip"]          = WiFi.softAPIP().toString();
         v_jsonDoc["ap_gateway"]     = WiFi.softAPIP().toString();           // AP 자신의 IP
         v_jsonDoc["ap_subnet"]      = WiFi.softAPSubnetMask().toString();
@@ -408,6 +408,8 @@ void W10_init() {
     WiFi.onEvent(W10_handleWiFiEvent); // Wi-Fi 이벤트 핸들러 등록
 
     W10_loadJsonConfig(); // 저장된 JSON 설정 파일 로드
+
+
     g_W10_wifiManager.setConfigPortalBlocking(!g_W10_appConfig.isWmNonBlocking);
     g_W10_isWmNonBlocking = g_W10_appConfig.isWmNonBlocking; // WiFiManager 호환성 유지
 
@@ -418,9 +420,9 @@ void W10_init() {
 
     // 4. WiFiManager 사용자 정의 매개변수 정의
     // 설정 구조체에서 값 가져와서 매개변수 생성
-    WiFiManagerParameter v_customMqttServer("server", "mqtt server", g_W10_appConfig.mqttServer, 40);
-    WiFiManagerParameter v_customMqttPort("port", "mqtt port", g_W10_appConfig.mqttPort, 5);
-    WiFiManagerParameter v_customApiToken("apikey", "API token", g_W10_appConfig.apiToken, 34);
+    WiFiManagerParameter v_customMqttServer(    "server"    , "mqtt server" , g_W10_appConfig.mqttServer    , 40);
+    WiFiManagerParameter v_customMqttPort(      "port"      , "mqtt port"   , g_W10_appConfig.mqttPort      , 5);
+    WiFiManagerParameter v_customApiToken(      "apikey"    , "API token"   , g_W10_appConfig.apiToken      , 34);
 
     char v_checkboxChecked[10];
     if (g_W10_appConfig.isWmNonBlocking) {
