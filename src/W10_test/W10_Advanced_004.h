@@ -265,7 +265,7 @@ void W10_loadJsonConfig(){
                     strcpy(g_W10_appConfig.apiToken     , v_jsonDoc["api_token"]    | "YOUR_APITOKEN");
 
                     Serial.println("setting AP ip from config");	
-					strcpy(g_W10_appConfig.use_custom_ap_ip        , v_jsonDoc["use_custom_ap_ip"] | false);
+					g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | false;
                     strcpy(g_W10_appConfig.ap_Ip        , v_jsonDoc["ap_ip"]        | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Subnet    , v_jsonDoc["ap_subnet"]    | "255.255.255.0");
@@ -460,14 +460,15 @@ void W10_init() {
     g_W10_wifiManager.setShowDnsFields(true);    // force show dns field always
 
 	// set AP static ip
-
-    // 6. WiFiManager의 고급 동작 설정
-    IPAddress _ap_ip, _ap_gw, _ap_sn;
-    _ap_ip.fromString(g_W10_appConfig.ap_Ip);
-    _ap_gw.fromString(g_W10_appConfig.ap_Gateway);
-    _ap_sn.fromString(g_W10_appConfig.ap_Subnet);
+    if(g_W10_appConfig.use_custom_ap_ip){
+        // 6. WiFiManager의 고급 동작 설정
+        IPAddress _ap_ip, _ap_gw, _ap_sn;
+        _ap_ip.fromString(g_W10_appConfig.ap_Ip);
+        _ap_gw.fromString(g_W10_appConfig.ap_Gateway);
+        _ap_sn.fromString(g_W10_appConfig.ap_Subnet);
 	
-    g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
+        g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
+	}
   
 	// "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
     std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
