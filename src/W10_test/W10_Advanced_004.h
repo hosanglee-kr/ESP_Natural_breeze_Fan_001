@@ -55,7 +55,8 @@ struct AppConfig {
     char mqttServer[40];
     char mqttPort[6];
     char apiToken[34];
-    
+
+    bool use_custom_ap_ip;
     char ap_Ip[16];
     char ap_Gateway[16];
     char ap_Subnet[16];
@@ -263,7 +264,8 @@ void W10_loadJsonConfig(){
                     strcpy(g_W10_appConfig.mqttPort     , v_jsonDoc["mqtt_port"]    | "8080");
                     strcpy(g_W10_appConfig.apiToken     , v_jsonDoc["api_token"]    | "YOUR_APITOKEN");
 
-                    Serial.println("setting AP ip from config");
+                    Serial.println("setting AP ip from config");	
+					strcpy(g_W10_appConfig.use_custom_ap_ip        , v_jsonDoc["use_custom_ap_ip"] | false);
                     strcpy(g_W10_appConfig.ap_Ip        , v_jsonDoc["ap_ip"]        | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10,0,1,1");
                     strcpy(g_W10_appConfig.ap_Subnet    , v_jsonDoc["ap_subnet"]    | "255.255.255.0");
@@ -320,7 +322,8 @@ void W10_saveJsonConfig(){
         v_jsonDoc["mqtt_port"]      = g_W10_appConfig.mqttPort;
         v_jsonDoc["api_token"]      = g_W10_appConfig.apiToken;
 
-
+        
+        v_jsonDoc["use_custom_ap_ip"]          = g_W10_appConfig.g_W10_appConfig.use_custom_ap_ip;
         v_jsonDoc["ap_ip"]          = WiFi.softAPIP().toString();
         v_jsonDoc["ap_gateway"]     = WiFi.softAPIP().toString();           // AP 자신의 IP
         v_jsonDoc["ap_subnet"]      = WiFi.softAPSubnetMask().toString();
