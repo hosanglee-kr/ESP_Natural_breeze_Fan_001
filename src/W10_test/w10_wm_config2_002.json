@@ -1,0 +1,33 @@
+{
+  "mqtt_server": "your_mqtt_server.com",
+  "mqtt_port": 1883,
+  "api_token": "your_api_token_here",
+
+  "use_custom_ap_ip": true,
+  "ap_ip": "10.0.1.1",
+  "ap_gateway": "10.0.1.1",
+  "ap_subnet": "255.255.255.0",
+
+  "wifi_networks": [
+    {
+      "ssid": "MyHomeNetwork",
+      "password": "my_home_password",
+      "use_dhcp": true,
+      "ip": "",
+      "gateway": "",
+      "subnet": "",
+      "dns": ""
+    },
+    {
+      "ssid": "MyOfficeNetwork",
+      "password": "my_office_password",
+      "use_dhcp": false,
+      "ip": "192.168.1.100",
+      "gateway": "192.168.1.1",
+      "subnet": "255.255.255.0",
+      "dns": "8.8.8.8"
+    }
+  ],
+
+  "wm_nonblocking": true
+}
