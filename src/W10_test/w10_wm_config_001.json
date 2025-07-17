@@ -2,7 +2,8 @@
   "mqtt_server": "your_mqtt_server.com",
   "mqtt_port": "1883",
   "api_token": "your_api_token_here",
-
+  
+  "use_custom_ap_ip" : true,
   "ap_ip": "10,0,1,1",
   "ap_gateway": "10,0,1,1",
   "ap_subnet": "255.255.255.0",
