@@ -1,7 +1,9 @@
+#pragma once
+
 // W10_Advanced_004.h
 
-#ifndef W10_ADVANCED_003_H
-#define W10_ADVANCED_003_H
+#ifndef W10_ADVANCED_004_H
+#define W10_ADVANCED_004_H
 
 
 // --- 라이브러리 인클루드 ---
@@ -632,4 +634,4 @@ void W10_run() {
     }
 }
 
-#endif // W10_ADVANCED_003_H
+#endif // W10_ADVANCED_004_H
