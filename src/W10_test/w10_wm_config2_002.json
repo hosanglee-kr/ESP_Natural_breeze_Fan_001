@@ -8,16 +8,7 @@
   "ap_gateway": "10.0.1.1",
   "ap_subnet": "255.255.255.0",
 
-  "wifi_networks": [
-    {
-      "ssid": "MyHomeNetwork",
-      "password": "my_home_password",
-      "use_dhcp": true,
-      "ip": "",
-      "gateway": "",
-      "subnet": "",
-      "dns": ""
-    },
+  "wifi_networks": 
     {
       "ssid": "MyOfficeNetwork",
       "password": "my_office_password",
@@ -26,8 +17,7 @@
       "gateway": "192.168.1.1",
       "subnet": "255.255.255.0",
       "dns": "8.8.8.8"
-    }
-  ],
+    },
 
   "wm_nonblocking": true
 }
