@@ -50,15 +50,6 @@ enum LedStatus {
 };
 
 // --- 설정 구조체 정의 ---
-struct WifiNetworkConfig {
-    char ssid[32];
-    char password[64];
-    bool useDhcp;
-    char ip[16];
-    char gateway[16];
-    char subnet[16];
-    char dns[16];
-};
 
 struct AppConfig {
     char mqttServer[40];
@@ -70,8 +61,14 @@ struct AppConfig {
     char ap_Gateway[16];
     char ap_Subnet[16];
     
-    // 여러 Wi-Fi 네트워크 설정을 저장하기 위한 벡터
-    std::vector<WifiNetworkConfig> wifiNetworks; 
+    // Wi-Fi STA 모드 관련 설정 (JSON 필드명과 일치하도록 변경)
+    char wifiSsid[32]; // SSID 최대 길이
+    char wifiPassword[64]; // 비밀번호 최대 길이
+    bool wifiUseDhcp; // DHCP 사용 여부
+    char wifiIp[16];
+    char wifiGateway[16];
+    char wifiSubnet[16];
+    char wifiDns[16];
 
     bool isWmNonBlocking;
 };
@@ -275,20 +272,14 @@ void W10_loadJsonConfig(){
                     strcpy(g_W10_appConfig.ap_Gateway   , v_jsonDoc["ap_gateway"]   | "10.0.1.1");
                     strcpy(g_W10_appConfig.ap_Subnet    , v_jsonDoc["ap_subnet"]    | "255.255.255.0");
                     
-                    // "wifi_networks" 배열 로드
-                    JsonArray wifiNetworksArray = v_jsonDoc["wifi_networks"].as<JsonArray>();
-                    g_W10_appConfig.wifiNetworks.clear(); // 기존 데이터 초기화
-                    for (JsonObject obj : wifiNetworksArray) {
-                        WifiNetworkConfig netConfig;
-                        strlcpy(netConfig.ssid, obj["ssid"] | "", sizeof(netConfig.ssid));
-                        strlcpy(netConfig.password, obj["password"] | "", sizeof(netConfig.password));
-                        netConfig.useDhcp = obj["use_dhcp"] | true;
-                        strlcpy(netConfig.ip, obj["ip"] | "", sizeof(netConfig.ip));
-                        strlcpy(netConfig.gateway, obj["gateway"] | "", sizeof(netConfig.gateway));
-                        strlcpy(netConfig.subnet, obj["subnet"] | "", sizeof(netConfig.subnet));
-                        strlcpy(netConfig.dns, obj["dns"] | "", sizeof(netConfig.dns));
-                        g_W10_appConfig.wifiNetworks.push_back(netConfig);
-                    }
+                    // Wi-Fi STA 모드 설정 로드 (JSON 필드명 반영)
+                    strlcpy(g_W10_appConfig.wifiSsid    , v_jsonDoc["wifi_ssid"]    | "", sizeof(g_W10_appConfig.wifiSsid));
+                    strlcpy(g_W10_appConfig.wifiPassword, v_jsonDoc["wifi_password"]| "", sizeof(g_W10_appConfig.wifiPassword));
+                    g_W10_appConfig.wifiUseDhcp         = v_jsonDoc["wifi_use_dhcp"]| true; // 기본값은 DHCP 사용
+                    strlcpy(g_W10_appConfig.wifiIp      , v_jsonDoc["wifi_ip"]      | "", sizeof(g_W10_appConfig.wifiIp));
+                    strlcpy(g_W10_appConfig.wifiGateway , v_jsonDoc["wifi_gateway"] | "", sizeof(g_W10_appConfig.wifiGateway));
+                    strlcpy(g_W10_appConfig.wifiSubnet  , v_jsonDoc["wifi_subnet"]  | "", sizeof(g_W10_appConfig.wifiSubnet));
+                    strlcpy(g_W10_appConfig.wifiDns     , v_jsonDoc["wifi_dns"]     | "", sizeof(g_W10_appConfig.wifiDns));
                                       
                     g_W10_appConfig.isWmNonBlocking = v_jsonDoc["wm_nonblocking"] | false;
                     g_W10_isWmNonBlocking           = g_W10_appConfig.isWmNonBlocking; // WiFiManager 호환성
@@ -315,17 +306,15 @@ void W10_loadJsonConfig(){
     Serial.println("MQTT Server: " + String(g_W10_appConfig.mqttServer));
     Serial.println("논블로킹 모드: "    + String(g_W10_appConfig.isWmNonBlocking ? "활성화" : "비활성화"));
     Serial.println("--- Wi-Fi 네트워크 설정 ---");
-    for (const auto& net : g_W10_appConfig.wifiNetworks) {
-        Serial.print("  SSID: "); Serial.println(net.ssid);
-        Serial.print("  DHCP 사용: "); Serial.println(net.useDhcp ? "예" : "아니오");
-        if (!net.useDhcp) {
-            Serial.print("  IP: "); Serial.println(net.ip);
-            Serial.print("  Gateway: "); Serial.println(net.gateway);
-            Serial.print("  Subnet: "); Serial.println(net.subnet);
-            Serial.print("  DNS: "); Serial.println(net.dns);
-        }
-    }
+    Serial.println("WiFi SSID: "     + String(g_W10_appConfig.wifiSsid));
+    Serial.println("WiFi DHCP: "     + String(g_W10_appConfig.wifiUseDhcp ? "Yes" : "No"));
+    Serial.println("WiFi IP: "       + String(g_W10_appConfig.wifiIp));
+    Serial.println("WiFi Gateway: "  + String(g_W10_appConfig.wifiGateway));
+    Serial.println("WiFi Subnet: "   + String(g_W10_appConfig.wifiSubnet));
+    Serial.println("WiFi DNS: "      + String(g_W10_appConfig.wifiDns));
+    Serial.println("논블로킹 모드: "    + String(g_W10_appConfig.isWmNonBlocking ? "활성화" : "비활성화"));
     Serial.println("--------------------");
+
 }
 
 // --- JSON 설정 파일 저장 함수 ---
@@ -344,18 +333,14 @@ void W10_saveJsonConfig(){
         v_jsonDoc["ap_gateway"]     = g_W10_appConfig.ap_Gateway; // 저장된 AP Gateway 사용
         v_jsonDoc["ap_subnet"]      = g_W10_appConfig.ap_Subnet;
 
-        // "wifi_networks" 배열 저장
-        JsonArray wifiNetworksArray = v_jsonDoc.createNestedArray("wifi_networks");
-        for (const auto& net : g_W10_appConfig.wifiNetworks) {
-            JsonObject obj = wifiNetworksArray.createNestedObject();
-            obj["ssid"] = net.ssid;
-            obj["password"] = net.password;
-            obj["use_dhcp"] = net.useDhcp;
-            obj["ip"] = net.ip;
-            obj["gateway"] = net.gateway;
-            obj["subnet"] = net.subnet;
-            obj["dns"] = net.dns;
-        }
+        // WiFiManager에 의해 저장된 Wi-Fi 정보를 JSON에 저장 (STA 모드)
+        v_jsonDoc["wifi_ssid"]      = WiFi.SSID();
+        v_jsonDoc["wifi_password"]  = WiFi.psk(); // PSK (Pre-Shared Key)
+        v_jsonDoc["wifi_use_dhcp"]  = (WiFi.getMode() == WIFI_STA && WiFi.getAutoConnect()); // 대략적인 DHCP 판단
+        v_jsonDoc["wifi_ip"]        = WiFi.localIP().toString();
+        v_jsonDoc["wifi_gateway"]   = WiFi.gatewayIP().toString();
+        v_jsonDoc["wifi_subnet"]    = WiFi.subnetMask().toString();
+        v_jsonDoc["wifi_dns"]       = WiFi.dnsIP().toString();
 
         v_jsonDoc["wm_nonblocking"] = g_W10_appConfig.isWmNonBlocking;
         
