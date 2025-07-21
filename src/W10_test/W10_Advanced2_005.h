@@ -53,7 +53,7 @@ enum LedStatus {
 
 struct AppConfig {
     char mqttServer[40];
-    char mqttPort[6];
+    int mqttPort;
     char apiToken[34];
 
     bool use_custom_ap_ip;
