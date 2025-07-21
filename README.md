@@ -1,9 +1,11 @@
 # [ESP_Natural_breeze_Fan_001]
 
+[![Release](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml/badge.svg)](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml)
+
 [![Test](https://github.com/256dpi/arduino-mqtt/actions/workflows/test.yml/badge.svg)](https://github.com/hosanglee-kr/PlatformIO_Template_V001/actions/workflows/test.yml)
 
 
-[![Release](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml/badge.svg)](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml)
+
 
 This repository template contains all the necessary files to:
 
