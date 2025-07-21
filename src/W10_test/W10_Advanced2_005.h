@@ -62,9 +62,9 @@ struct AppConfig {
     char ap_Subnet[16];
     
     // Wi-Fi STA 모드 관련 설정 (JSON 필드명과 일치하도록 변경)
-    char wifiSsid[32]; // SSID 최대 길이
-    char wifiPassword[64]; // 비밀번호 최대 길이
-    bool wifiUseDhcp; // DHCP 사용 여부
+    char wifiSsid[32];              // SSID 최대 길이
+    char wifiPassword[64];          // 비밀번호 최대 길이
+    bool wifiUseDhcp;               // DHCP 사용 여부
     char wifiIp[16];
     char wifiGateway[16];
     char wifiSubnet[16];
@@ -406,6 +406,7 @@ void W10_handleWiFiEvent(arduino_event_id_t event) {
 
 // --- 초기화 함수 ---
 void W10_init() {
+    
     // 1. LED 초기화
     FastLED.addLeds<WS2812B, G_W10_LED_PIN, GRB>(g_W10_leds, G_W10_NUM_LEDS);
     FastLED.setBrightness(50); // LED 밝기 설정 (0-255)
@@ -427,9 +428,12 @@ void W10_init() {
 
     // 4. WiFiManager 사용자 정의 매개변수 정의
     // 설정 구조체에서 값 가져와서 매개변수 생성
-    WiFiManagerParameter v_customMqttServer(    "server"    , "mqtt server" , g_W10_appConfig.mqttServer    , 40);
-    WiFiManagerParameter v_customMqttPort(      "port"      , "mqtt port"   , g_W10_appConfig.mqttPort      , 5);
-    WiFiManagerParameter v_customApiToken(      "apikey"    , "API token"   , g_W10_appConfig.apiToken      , 34);
+    WiFiManagerParameter v_customMqttServer(    "server"    , "mqtt server" , g_W10_appConfig.mqttServer    , sizeof(g_W10_appConfig.mqttServer));
+    // mqttPort는 int형이므로 char 배열로 변환하여 WiFiManagerParameter에 전달
+    char mqttPortStr[8];
+    itoa(g_W10_appConfig.mqttPort, mqttPortStr, 10);
+    WiFiManagerParameter v_customMqttPort(      "port"      , "mqtt port"   , mqttPortStr                   , sizeof(mqttPortStr));
+    WiFiManagerParameter v_customApiToken(      "apikey"    , "API token"   , g_W10_appConfig.apiToken      , sizeof(g_W10_appConfig.apiToken));
 
     char v_checkboxChecked[10];
     if (g_W10_appConfig.isWmNonBlocking) {
@@ -441,11 +445,24 @@ void W10_init() {
     sprintf(v_checkboxHtml, "<br/><input type='checkbox' name='wm_nonblocking' value='true' %s> 논블로킹 모드 사용", v_checkboxChecked);
     WiFiManagerParameter v_wmNonBlockingCheckbox(v_checkboxHtml);
 
+    // DHCP 사용 여부 체크박스 추가
+    char dhcpChecked[10];
+    if (g_W10_appConfig.wifiUseDhcp) {
+        strcpy(dhcpChecked, "checked");
+    } else {
+        strcpy(dhcpChecked, "");
+    }
+    char dhcpHtml[100];
+    sprintf(dhcpHtml, "<br/><input type='checkbox' name='wifi_use_dhcp' value='true' %s> DHCP 사용", dhcpChecked);
+    WiFiManagerParameter v_wifiUseDhcpCheckbox(dhcpHtml);
+
+
     char v_macAddressStr[18];
     String v_currentMac = WiFi.macAddress();
     v_currentMac.toCharArray(v_macAddressStr, sizeof(v_macAddressStr));
     WiFiManagerParameter v_macParam("<p><strong>디바이스 MAC 주소:</strong></p>", "MAC Address", v_macAddressStr, sizeof(v_macAddressStr), "readonly");
     
+    // (기존) 임시 라디오 버튼
     const char* v_customRadioStr  = "<br/><label for='customfieldid'>Custom Field Label</label><input type='radio' name='customfieldid' value='1' checked> One<br><input type='radio' name='customfieldid' value='2'> Two<br><input type='radio' name='customfieldid' value='3'> Three";
     new (&g_W10_customField) WiFiManagerParameter(v_customRadioStr);
 
@@ -454,16 +471,25 @@ void W10_init() {
     g_W10_wifiManager.addParameter(&v_customMqttPort);
     g_W10_wifiManager.addParameter(&v_customApiToken);
     g_W10_wifiManager.addParameter(&v_wmNonBlockingCheckbox);
+    g_W10_wifiManager.addParameter(&v_wifiUseDhcpCheckbox); // DHCP 체크박스 추가
     g_W10_wifiManager.addParameter(&v_macParam);
     g_W10_wifiManager.addParameter(&g_W10_customField);
 
-    // 6. WiFiManager의 고급 동작 설정
-    // 정적 IP 설정 관련 부분 제거 (JSON에서 여러 네트워크를 관리하므로)
-    // g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn, _dns);
-    // g_W10_wifiManager.setShowStaticFields(true); 
-    // g_W10_wifiManager.setShowDnsFields(true);  
+    // 6. WiFiManager의 고급 동작 설정 (STA 모드 정적 IP)
+    // DHCP 사용 여부에 따라 정적 IP 필드 표시 여부 결정
+    g_W10_wifiManager.setShowStaticFields(!g_W10_appConfig.wifiUseDhcp); // DHCP 사용 안 하면 정적 IP 필드 표시
+    g_W10_wifiManager.setShowDnsFields(!g_W10_appConfig.wifiUseDhcp);    // DHCP 사용 안 하면 DNS 필드 표시
+    
+    // JSON에서 로드된 고정 IP 정보로 설정
+    IPAddress _ip, _gw, _sn, _dns;
+    _ip.fromString(g_W10_appConfig.wifiIp);
+    _gw.fromString(g_W10_appConfig.wifiGateway);
+    _sn.fromString(g_W10_appConfig.wifiSubnet);
+    _dns.fromString(g_W10_appConfig.wifiDns);
+    
+    g_W10_wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn, _dns);
 
-    // AP static ip 설정
+    // set AP static ip
     if(g_W10_appConfig.use_custom_ap_ip){
         IPAddress _ap_ip, _ap_gw, _ap_sn;
         _ap_ip.fromString(g_W10_appConfig.ap_Ip);
@@ -472,17 +498,40 @@ void W10_init() {
     
         g_W10_wifiManager.setAPStaticIPConfig(_ap_ip, _ap_gw, _ap_sn);
     }
-  
+    
     // "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"
     std::vector<const char*> v_menu = { "wifi","wifinoscan","info","param","close","sep","erase","restart","exit"};
     g_W10_wifiManager.setMenu(v_menu);
     g_W10_wifiManager.setClass("invert");
-    g_W10_wifiManager.setConfigPortalTimeout(30);
+    g_W10_wifiManager.setConfigPortalTimeout(30); // 설정 포털 타임아웃 30초
 
     // 7. Wi-Fi 네트워크에 자동 연결 시도
     Serial.println("Attempting Wi-Fi autoConnect...");
     W10_setLedStatus(LED_STATUS_WIFI_CONNECTING); // 연결 시도 중 LED
-    bool v_connectResult = g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword);
+    bool v_connectResult;
+
+    // JSON에 특정 SSID/패스워드가 있다면, 우선적으로 여기에 연결 시도
+    if (strlen(g_W10_appConfig.wifiSsid) > 0) {
+        Serial.print("Connecting to pre-configured WiFi: ");
+        Serial.println(g_W10_appConfig.wifiSsid);
+        // WiFiManager의 connectWifi는 autoConnect보다 더 명시적인 제어를 제공합니다.
+        // 하지만 내부적으로 자격 증명을 관리하는 autoConnect가 더 유연할 수 있습니다.
+        // 여기서는 autoConnect가 저장된 자격 증명(config.json에 의해 업데이트된)을 사용하도록 합니다.
+        // 특정 SSID/패스워드를 직접 연결하려면 WiFi.begin()을 사용해야 합니다.
+        // 현재 WiFiManager의 autoConnect는 내부적으로 저장된 자격 증명을 우선 시도합니다.
+        // 따라서 JSON에 명시된 "wifi_ssid", "wifi_password"는 WiFiManager가 처음 연결을 시도할 때
+        // 힌트로 제공되거나, 사용자가 수동으로 입력할 때의 기본값으로 활용될 수 있습니다.
+        // WiFiManager는 AP 스캔 후 사용자가 선택한 네트워크 정보를 저장합니다.
+        
+        // WiFi.begin()을 사용하여 JSON에 있는 SSID/PW로 직접 연결을 시도할 수도 있습니다.
+        // 이 경우 WiFiManager의 자동 연결 로직과 병행하여 사용해야 합니다.
+        // 여기서는 WiFiManager의 autoConnect 로직을 따르며, JSON의 wifi_ssid/password는
+        // 초기 설정이 없을 때의 fallback 또는 사용자에게 제시할 정보로 간주합니다.
+        v_connectResult = g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword);
+    } else {
+        // 사전에 설정된 SSID/PW가 없으면 일반적인 자동 연결 시도
+        v_connectResult = g_W10_wifiManager.autoConnect(g_W10_apName, g_W10_apPassword);
+    }
 
     if (!v_connectResult) {
         Serial.println("Wi-Fi 연결 실패 또는 타임아웃 발생");
@@ -495,10 +544,20 @@ void W10_init() {
     }
 
     // 8. 웹 UI에서 업데이트된 매개변수 값들을 전역 변수(구조체)에 반영하고 설정 저장
-    strcpy(g_W10_appConfig.mqttServer   , v_customMqttServer.getValue());
-    strcpy(g_W10_appConfig.mqttPort     , v_customMqttPort.getValue());
-    strcpy(g_W10_appConfig.apiToken     , v_customApiToken.getValue());
+    strcpy(g_W10_appConfig.mqttServer    , v_customMqttServer.getValue());
+    g_W10_appConfig.mqttPort             = atoi(v_customMqttPort.getValue()); // string to int
+    strcpy(g_W10_appConfig.apiToken      , v_customApiToken.getValue());
     
+    // WiFiManager에 의해 설정된 IP/DNS 정보 가져오기
+    // autoConnect 성공 후 WiFiManager가 저장한 값을 AppConfig에 반영합니다.
+    strlcpy(g_W10_appConfig.wifiIp, WiFi.localIP().toString().c_str(), sizeof(g_W10_appConfig.wifiIp));
+    strlcpy(g_W10_appConfig.wifiGateway, WiFi.gatewayIP().toString().c_str(), sizeof(g_W10_appConfig.wifiGateway));
+    strlcpy(g_W10_appConfig.wifiSubnet, WiFi.subnetMask().toString().c_str(), sizeof(g_W10_appConfig.wifiSubnet));
+    strlcpy(g_W10_appConfig.wifiDns, WiFi.dnsIP().toString().c_str(), sizeof(g_W10_appConfig.wifiDns));
+    strlcpy(g_W10_appConfig.wifiSsid, WiFi.SSID().c_str(), sizeof(g_W10_appConfig.wifiSsid));
+    strlcpy(g_W10_appConfig.wifiPassword, WiFi.psk().c_str(), sizeof(g_W10_appConfig.wifiPassword));
+    g_W10_appConfig.wifiUseDhcp = (WiFi.getMode() == WIFI_STA && WiFi.getAutoConnect()); // 대략적인 DHCP 판단
+
     if (g_W10_wifiManager.server->hasArg("wm_nonblocking") && g_W10_wifiManager.server->arg("wm_nonblocking").equalsIgnoreCase("true")) {
         g_W10_appConfig.isWmNonBlocking = true;
     } else {
@@ -581,10 +640,26 @@ void W10_saveParamCallback() {
     Serial.println("매개변수 customfieldid = " + W10_getParam("customfieldid"));
     g_W10_shouldSaveConfig = true;
     // 매개변수 변경 시 구조체 값 업데이트
-    if (g_W10_wifiManager.server->hasArg("server")) strcpy(g_W10_appConfig.mqttServer, g_W10_wifiManager.server->arg("server").c_str());
-    if (g_W10_wifiManager.server->hasArg("port")) strcpy(g_W10_appConfig.mqttPort, g_W10_wifiManager.server->arg("port").c_str());
-    if (g_W10_wifiManager.server->hasArg("apikey")) strcpy(g_W10_appConfig.apiToken, g_W10_wifiManager.server->arg("apikey").c_str());
-    
+    if (g_W10_wifiManager.server->hasArg("server")) strlcpy(g_W10_appConfig.mqttServer, g_W10_wifiManager.server->arg("server").c_str(), sizeof(g_W10_appConfig.mqttServer));
+    if (g_W10_wifiManager.server->hasArg("port")) g_W10_appConfig.mqttPort = atoi(g_W10_wifiManager.server->arg("port").c_str());
+    if (g_W10_wifiManager.server->hasArg("apikey")) strlcpy(g_W10_appConfig.apiToken, g_W10_wifiManager.server->arg("apikey").c_str(), sizeof(g_W10_appConfig.apiToken));
+
+    // WiFiManager가 제공하는 정적 IP 필드 값 가져오기
+    // WiFiManager는 STAStaticIPConfig를 사용하면 'ip', 'gateway', 'subnet', 'dns' 이름으로 필드를 관리합니다.
+    if (g_W10_wifiManager.server->hasArg("ip")) strlcpy(g_W10_appConfig.wifiIp, g_W10_wifiManager.server->arg("ip").c_str(), sizeof(g_W10_appConfig.wifiIp));
+    if (g_W10_wifiManager.server->hasArg("gateway")) strlcpy(g_W10_appConfig.wifiGateway, g_W10_wifiManager.server->arg("gateway").c_str(), sizeof(g_W10_appConfig.wifiGateway));
+    if (g_W10_wifiManager.server->hasArg("subnet")) strlcpy(g_W10_appConfig.wifiSubnet, g_W10_wifiManager.server->arg("subnet").c_str(), sizeof(g_W10_appConfig.wifiSubnet));
+    if (g_W10_wifiManager.server->hasArg("dns")) strlcpy(g_W10_appConfig.wifiDns, g_W10_wifiManager.server->arg("dns").c_str(), sizeof(g_W10_appConfig.wifiDns));
+
+    // DHCP 사용 체크박스 값 가져오기
+    if (g_W10_wifiManager.server->hasArg("wifi_use_dhcp") && g_W10_wifiManager.server->arg("wifi_use_dhcp").equalsIgnoreCase("true")) {
+        g_W10_appConfig.wifiUseDhcp = true;
+    } else {
+        g_W10_appConfig.wifiUseDhcp = false;
+    }
+    g_W10_wifiManager.setShowStaticFields(!g_W10_appConfig.wifiUseDhcp);
+    g_W10_wifiManager.setShowDnsFields(!g_W10_appConfig.wifiUseDhcp);
+
     if (g_W10_wifiManager.server->hasArg("wm_nonblocking") && g_W10_wifiManager.server->arg("wm_nonblocking").equalsIgnoreCase("true")) {
         g_W10_appConfig.isWmNonBlocking = true;
     } else {
