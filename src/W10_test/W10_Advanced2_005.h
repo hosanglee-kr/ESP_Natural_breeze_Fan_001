@@ -263,7 +263,7 @@ void W10_loadJsonConfig(){
                     Serial.println("\nparsed json");
                     // 설정 구조체에 값 로드
                     strcpy(g_W10_appConfig.mqttServer   , v_jsonDoc["mqtt_server"]  | "");
-					g_W10_appConfig.mqttPort            = v_jsonDoc["mqtt_port"]    | 1883);  
+					g_W10_appConfig.mqttPort            = v_jsonDoc["mqtt_port"]    | 1883;  
                     // strcpy(g_W10_appConfig.mqttPort     , v_jsonDoc["mqtt_port"]    | "8080");
                     strcpy(g_W10_appConfig.apiToken     , v_jsonDoc["api_token"]    | "YOUR_APITOKEN");
 
