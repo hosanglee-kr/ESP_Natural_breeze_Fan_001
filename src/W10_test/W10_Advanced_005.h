@@ -1,9 +1,9 @@
 #pragma once
 
-// W10_Advanced2_005.h
+// W10_Advanced_005.h
 
-#ifndef W10_ADVANCED2_005_H
-#define W10_ADVANCED2_005_H
+#ifndef W10_ADVANCED_005_H
+#define W10_ADVANCED_005_H
 
 
 // --- 라이브러리 인클루드 ---
