@@ -2,8 +2,7 @@
 
 [![Release](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml/badge.svg)](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/actions/workflows/release_v2.1.yml)
 
-[![Test](https://github.com/256dpi/arduino-mqtt/actions/workflows/test.yml/badge.svg)](https://github.com/hosanglee-kr/PlatformIO_Template_V001/actions/workflows/test.yml)
-
+[![Rel Ver](https://img.shields.io/github/release/hosanglee-kr/ESP_Natural_breeze_Fan_001.svg)](https://github.com/hosanglee-kr/ESP_Natural_breeze_Fan_001/releases)
 
 
 
