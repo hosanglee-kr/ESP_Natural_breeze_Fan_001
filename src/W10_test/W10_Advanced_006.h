@@ -431,31 +431,31 @@ void W10_init() {
     // 설정 구조체에서 값 가져와서 매개변수 생성
     WiFiManagerParameter v_customMqttServer(    "server"    , "mqtt server" , g_W10_appConfig.mqttServer    , sizeof(g_W10_appConfig.mqttServer));
     // mqttPort는 int형이므로 char 배열로 변환하여 WiFiManagerParameter에 전달
-    char mqttPortStr[8];
-    itoa(g_W10_appConfig.mqttPort, mqttPortStr, 10);
-    WiFiManagerParameter v_customMqttPort(      "port"      , "mqtt port"   , mqttPortStr                   , sizeof(mqttPortStr));
+    char v_mqttPortStr[8];
+    itoa(g_W10_appConfig.mqttPort, v_mqttPortStr, 10);
+    WiFiManagerParameter v_customMqttPort(      "port"      , "mqtt port"   , v_mqttPortStr                   , sizeof(mqttPortStr));
     WiFiManagerParameter v_customApiToken(      "apikey"    , "API token"   , g_W10_appConfig.apiToken      , sizeof(g_W10_appConfig.apiToken));
 
-    char v_checkboxChecked[10];
+    char v_nonBlock_checkboxChecked[10];
     if (g_W10_appConfig.isWmNonBlocking) {
-        strcpy(v_checkboxChecked, "checked");
+        strcpy(v_nonBlock_checkboxChecked, "checked");
     } else {
-        strcpy(v_checkboxChecked, "");
+        strcpy(v_nonBlock_checkboxChecked, "");
     }
-    char v_checkboxHtml[100];
-    sprintf(v_checkboxHtml, "<br/><input type='checkbox' name='wm_nonblocking' value='true' %s> 논블로킹 모드 사용", v_checkboxChecked);
-    WiFiManagerParameter v_wmNonBlockingCheckbox(v_checkboxHtml);
+    char v_nonBlock_checkboxHtml[100];
+    sprintf(v_nonBlock_checkboxHtml, "<br/><input type='checkbox' name='wm_nonblocking' value='true' %s> 논블로킹 모드 사용", v_nonBlock_checkboxChecked);
+    WiFiManagerParameter v_wmNonBlockingCheckbox(v_nonBlock_checkboxHtml);
 
     // DHCP 사용 여부 체크박스 추가
-    char dhcpChecked[10];
+    char v_dhcpChecked[10];
     if (g_W10_appConfig.wifiUseDhcp) {
-        strcpy(dhcpChecked, "checked");
+        strcpy(v_dhcpChecked, "checked");
     } else {
-        strcpy(dhcpChecked, "");
+        strcpy(v_dhcpChecked, "");
     }
-    char dhcpHtml[100];
-    sprintf(dhcpHtml, "<br/><input type='checkbox' name='wifi_use_dhcp' value='true' %s> DHCP 사용", dhcpChecked);
-    WiFiManagerParameter v_wifiUseDhcpCheckbox(dhcpHtml);
+    char v_dhcpHtml[100];
+    sprintf(v_dhcpHtml, "<br/><input type='checkbox' name='wifi_use_dhcp' value='true' %s> DHCP 사용", v_dhcpChecked);
+    WiFiManagerParameter v_wifiUseDhcpCheckbox(v_dhcpHtml);
 
 
     char v_macAddressStr[18];
