@@ -52,25 +52,25 @@ enum LedStatus {
 // --- 설정 구조체 정의 ---
 // 모든 애플리케이션 관련 설정은 이 구조체에 포함됩니다.
 struct AppConfig {
-    char mqttServer[40];
-    int mqttPort;
-    char apiToken[34];
+    char mqttServer[40] = "";               // 기본값을 빈 문자열로 초기화
+    int mqttPort = 1883;                    // 기본 MQTT 포트 1883으로 초기화
+    char apiToken[34] = "YOUR_APITOKEN";    // 기본 API 토큰으로 초기화
 
-    bool use_custom_ap_ip;
-    char ap_Ip[16];
-    char ap_Gateway[16];
-    char ap_Subnet[16];
+    bool use_custom_ap_ip = false;          // 기본적으로 사용자 정의 AP IP 사용 안 함
+    char ap_Ip[16] = "10.0.1.1";            // 기본 AP IP 주소
+    char ap_Gateway[16] = "10.0.1.1";       // 기본 AP 게이트웨이 주소
+    char ap_Subnet[16] = "255.255.255.0";   // 기본 AP 서브넷 마스크
     
     // Wi-Fi STA 모드 관련 설정 (JSON 필드명과 일치하도록 변경)
-    char wifiSsid[32];              // SSID 최대 길이
-    char wifiPassword[64];          // 비밀번호 최대 길이
-    bool wifiUseDhcp;               // DHCP 사용 여부
-    char wifiIp[16];
-    char wifiGateway[16];
-    char wifiSubnet[16];
-    char wifiDns[16];
+    char wifiSsid[32] = "";                 // 기본값을 빈 문자열로 초기화
+    char wifiPassword[64] = "";             // 기본값을 빈 문자열로 초기화
+    bool wifiUseDhcp = true;                // 기본값은 DHCP 사용
+    char wifiIp[16] = "";                   // 기본값을 빈 문자열로 초기화 (DHCP 사용 시 채워짐)
+    char wifiGateway[16] = "";              // 기본값을 빈 문자열로 초기화 (DHCP 사용 시 채워짐)
+    char wifiSubnet[16] = "";               // 기본값을 빈 문자열로 초기화 (DHCP 사용 시 채워짐)
+    char wifiDns[16] = "";
 
-    bool isWmNonBlocking; // WiFiManager 논블로킹 모드 사용 여부
+    bool isWmNonBlocking = false; // WiFiManager 논블로킹 모드 사용 여부
 };
 
 // --- 전역 변수 정의 ---
