@@ -222,7 +222,7 @@ void W10_saveConfigCallback() {
     g_W10_shouldSaveConfig = true;
 }
 
-// --- JSON 설정 파일 로드 함수 ---
+// W10_Advanced_006.h 파일 내 W10_loadJsonConfig 함수
 void W10_loadJsonConfig(){
     Serial.println("mounting FS...");
 
@@ -246,27 +246,27 @@ void W10_loadJsonConfig(){
 
                 if ( ! v_deserializeError ) {
                     Serial.println("\nparsed json");
-                    // 설정 구조체에 값 로드 (기본값 처리 포함)
-                    strlcpy(g_W10_appConfig.mqttServer, v_jsonDoc["mqtt_server"] | "", sizeof(g_W10_appConfig.mqttServer));
-                    g_W10_appConfig.mqttPort            = v_jsonDoc["mqtt_port"]    | 1883; // int 타입이므로 직접 대입
-                    strlcpy(g_W10_appConfig.apiToken, v_jsonDoc["api_token"]    | "YOUR_APITOKEN", sizeof(g_W10_appConfig.apiToken));
+                    // 설정 구조체에 값 로드 (JSON에 값이 없으면 구조체 기본값이 유지됨)
+                    strlcpy(g_W10_appConfig.mqttServer, v_jsonDoc["mqtt_server"] | g_W10_appConfig.mqttServer, sizeof(g_W10_appConfig.mqttServer));
+                    g_W10_appConfig.mqttPort            = v_jsonDoc["mqtt_port"]    | g_W10_appConfig.mqttPort;
+                    strlcpy(g_W10_appConfig.apiToken, v_jsonDoc["api_token"]    | g_W10_appConfig.apiToken, sizeof(g_W10_appConfig.apiToken));
 
                     Serial.println("setting AP ip from config");    
-                    g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | false;
-                    strlcpy(g_W10_appConfig.ap_Ip       , v_jsonDoc["ap_ip"]        | "10.0.1.1", sizeof(g_W10_appConfig.ap_Ip));
-                    strlcpy(g_W10_appConfig.ap_Gateway  , v_jsonDoc["ap_gateway"]   | "10.0.1.1", sizeof(g_W10_appConfig.ap_Gateway));
-                    strlcpy(g_W10_appConfig.ap_Subnet   , v_jsonDoc["ap_subnet"]    | "255.255.255.0", sizeof(g_W10_appConfig.ap_Subnet));
+                    g_W10_appConfig.use_custom_ap_ip    = v_jsonDoc["use_custom_ap_ip"] | g_W10_appConfig.use_custom_ap_ip;
+                    strlcpy(g_W10_appConfig.ap_Ip       , v_jsonDoc["ap_ip"]        | g_W10_appConfig.ap_Ip, sizeof(g_W10_appConfig.ap_Ip));
+                    strlcpy(g_W10_appConfig.ap_Gateway  , v_jsonDoc["ap_gateway"]   | g_W10_appConfig.ap_Gateway, sizeof(g_W10_appConfig.ap_Gateway));
+                    strlcpy(g_W10_appConfig.ap_Subnet   , v_jsonDoc["ap_subnet"]    | g_W10_appConfig.ap_Subnet, sizeof(g_W10_appConfig.ap_Subnet));
                     
                     // Wi-Fi STA 모드 설정 로드 (JSON 필드명 반영)
-                    strlcpy(g_W10_appConfig.wifiSsid    , v_jsonDoc["wifi_ssid"]    | "", sizeof(g_W10_appConfig.wifiSsid));
-                    strlcpy(g_W10_appConfig.wifiPassword, v_jsonDoc["wifi_password"]| "", sizeof(g_W10_appConfig.wifiPassword));
-                    g_W10_appConfig.wifiUseDhcp         = v_jsonDoc["wifi_use_dhcp"]| true; // 기본값은 DHCP 사용
-                    strlcpy(g_W10_appConfig.wifiIp      , v_jsonDoc["wifi_ip"]      | "", sizeof(g_W10_appConfig.wifiIp));
-                    strlcpy(g_W10_appConfig.wifiGateway , v_jsonDoc["wifi_gateway"] | "", sizeof(g_W10_appConfig.wifiGateway));
-                    strlcpy(g_W10_appConfig.wifiSubnet  , v_jsonDoc["wifi_subnet"]  | "", sizeof(g_W10_appConfig.wifiSubnet));
-                    strlcpy(g_W10_appConfig.wifiDns     , v_jsonDoc["wifi_dns"]     | "", sizeof(g_W10_appConfig.wifiDns));
+                    strlcpy(g_W10_appConfig.wifiSsid    , v_jsonDoc["wifi_ssid"]    | g_W10_appConfig.wifiSsid, sizeof(g_W10_appConfig.wifiSsid));
+                    strlcpy(g_W10_appConfig.wifiPassword, v_jsonDoc["wifi_password"]| g_W10_appConfig.wifiPassword, sizeof(g_W10_appConfig.wifiPassword));
+                    g_W10_appConfig.wifiUseDhcp         = v_jsonDoc["wifi_use_dhcp"]| g_W10_appConfig.wifiUseDhcp;
+                    strlcpy(g_W10_appConfig.wifiIp      , v_jsonDoc["wifi_ip"]      | g_W10_appConfig.wifiIp, sizeof(g_W10_appConfig.wifiIp));
+                    strlcpy(g_W10_appConfig.wifiGateway , v_jsonDoc["wifi_gateway"] | g_W10_appConfig.wifiGateway, sizeof(g_W10_appConfig.wifiGateway));
+                    strlcpy(g_W10_appConfig.wifiSubnet  , v_jsonDoc["wifi_subnet"]  | g_W10_appConfig.wifiSubnet, sizeof(g_W10_appConfig.wifiSubnet));
+                    strlcpy(g_W10_appConfig.wifiDns     , v_jsonDoc["wifi_dns"]     | g_W10_appConfig.wifiDns, sizeof(g_W10_appConfig.wifiDns));
                                         
-                    g_W10_appConfig.isWmNonBlocking = v_jsonDoc["wm_nonblocking"] | false;
+                    g_W10_appConfig.isWmNonBlocking = v_jsonDoc["wm_nonblocking"] | g_W10_appConfig.isWmNonBlocking;
 
                     Serial.print("논블로킹 모드 설정: ");
                     Serial.println(g_W10_appConfig.isWmNonBlocking ? "활성화" : "비활성화");
@@ -279,12 +279,10 @@ void W10_loadJsonConfig(){
                 Serial.println("failed to open config file");
             }
         } else {
-            Serial.println("config file does not exist. Using default settings.");
+            Serial.println("config file does not exist. Using default settings from struct.");
         }
     } else {
         Serial.println("failed to mount FS! Configuration cannot be loaded.");
-        // 파일 시스템 마운트 실패 시, 오류 상태 LED 표시 등 추가적인 오류 처리를 고려할 수 있습니다.
-        // W10_setLedStatus(LED_STATUS_OTA_ERROR); // 예시
     }
 
     Serial.println("--- 로드된 설정 요약 ---");
@@ -302,6 +300,7 @@ void W10_loadJsonConfig(){
     Serial.println("--------------------");
 }
 
+    
 // --- JSON 설정 파일 저장 함수 ---
 void W10_saveJsonConfig(){
     if (g_W10_shouldSaveConfig) {
