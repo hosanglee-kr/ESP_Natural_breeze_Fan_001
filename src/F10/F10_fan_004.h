@@ -417,9 +417,6 @@ void F10_init() {
 	digitalWrite(G_F10_MOTOR_INPUT1_PIN, HIGH);
 	digitalWrite(G_F10_MOTOR_INPUT2_PIN, LOW);
 
-	// 난수 생성을 위한 시드 설정 (연결되지 않은 아날로그 핀의 노이즈 활용)
-	// randomSeed(analogRead(0));
-
 	g_F10_dht.begin();	// DHT 센서 시작
 
 	// LittleFS 초기화
