@@ -27,7 +27,7 @@
     #define G_W10_TRIGGER_PIN 0 // 설정 포털 트리거 및 설정 초기화에 사용되는 핀
 #endif
 
-#define G_W10_WM_CONFIG_FILE  "/w10_wm_config2_002.json" // WiFiManager 설정 파일 경로
+#define G_W10_WM_CONFIG_FILE  "/w10_wm_config_003.json" // WiFiManager 설정 파일 경로
 
 // --- WS2812B LED 설정 ---
 #define G_W10_LED_PIN         27    // WS2812B 데이터 핀 번호
