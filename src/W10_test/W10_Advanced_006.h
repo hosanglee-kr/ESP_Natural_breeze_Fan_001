@@ -83,8 +83,8 @@ bool                  g_W10_shouldReconnectWifi = false;              // Wi-Fi �
 unsigned long         g_W10_lastReconnectAttempt= 0;                  // 마지막 재연결 시도 시간
 const long            G_W10_RECONNECT_INTERVAL_MS = 5000;             // 재연결 시도 간격 (5초)
 
-const char* g_W10_apName              = "AutoConnectAP";
-const char* g_W10_apPassword          = NULL;
+const char*           g_W10_apName              = "AutoConnectAP";
+const char*           g_W10_apPassword          = NULL;
 
 CRGB                  g_W10_leds[G_W10_NUM_LEDS];                     // WS2812B LED 배열 정의
 
